@@ -1,3 +1,128 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <data>
+
+        <!-- LIST VIEW -->
+        <record id="view_assetflow_prediction_list" model="ir.ui.view">
+            <field name="name">assetflow.maintenance.prediction.list</field>
+            <field name="model">assetflow.maintenance.prediction</field>
+            <field name="arch" type="xml">
+                <list string="Maintenance Predictions"
+                      decoration-success="risk_level == 'healthy'"
+                      decoration-warning="risk_level == 'monitor'"
+                      decoration-danger="risk_level in ('warning', 'critical')">
+                    <field name="asset_id"/>
+                    <field name="prediction_date"/>
+                    <field name="failure_probability" widget="percentage"/>
+                    <field name="health_score" widget="progressbar"/>
+                    <field name="recommended_maintenance_date"/>
+                    <field name="risk_level" widget="badge"
+                           decoration-success="risk_level == 'healthy'"
+                           decoration-warning="risk_level == 'monitor'"
+                           decoration-warning="risk_level == 'warning'"
+                           decoration-danger="risk_level == 'critical'"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- FORM VIEW -->
+        <record id="view_assetflow_prediction_form" model="ir.ui.view">
+            <field name="name">assetflow.maintenance.prediction.form</field>
+            <field name="model">assetflow.maintenance.prediction</field>
+            <field name="arch" type="xml">
+                <form string="Maintenance Prediction">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>
+                                <field name="asset_id" placeholder="Asset"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group string="Prediction Details">
+                                <field name="prediction_date"/>
+                                <field name="failure_probability" widget="percentage"/>
+                                <field name="recommended_maintenance_date"/>
+                            </group>
+                            <group string="Health &amp; Risk">
+                                <field name="health_score" widget="progressbar"/>
+                                <field name="risk_level" widget="badge"
+                                       decoration-success="risk_level == 'healthy'"
+                                       decoration-warning="risk_level in ('monitor', 'warning')"
+                                       decoration-danger="risk_level == 'critical'"/>
+                            </group>
+                        </group>
+                        <group string="AI Insight Notes">
+                            <field name="notes" nolabel="1" placeholder="Model reasoning / contributing factors..."/>
+                        </group>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- KANBAN VIEW (visual risk board) -->
+        <record id="view_assetflow_prediction_kanban" model="ir.ui.view">
+            <field name="name">assetflow.maintenance.prediction.kanban</field>
+            <field name="model">assetflow.maintenance.prediction</field>
+            <field name="arch" type="xml">
+                <kanban class="o_kanban_small_column" default_group_by="risk_level">
+                    <field name="risk_level"/>
+                    <field name="failure_probability"/>
+                    <field name="health_score"/>
+                    <templates>
+                        <t t-name="card">
+                            <div class="oe_kanban_card oe_kanban_global_click">
+                                <strong><field name="asset_id"/></strong>
+                                <div>Failure Risk: <field name="failure_probability" widget="percentage"/></div>
+                                <div><field name="health_score" widget="progressbar"/></div>
+                                <div><field name="recommended_maintenance_date"/></div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- SEARCH VIEW -->
+        <record id="view_assetflow_prediction_search" model="ir.ui.view">
+            <field name="name">assetflow.maintenance.prediction.search</field>
+            <field name="model">assetflow.maintenance.prediction</field>
+            <field name="arch" type="xml">
+                <search string="Search Predictions">
+                    <field name="asset_id"/>
+                    <field name="prediction_date"/>
+                    <filter string="Healthy" name="filter_healthy" domain="[('risk_level','=','healthy')]"/>
+                    <filter string="Monitor" name="filter_monitor" domain="[('risk_level','=','monitor')]"/>
+                    <filter string="Warning" name="filter_warning" domain="[('risk_level','=','warning')]"/>
+                    <filter string="Critical" name="filter_critical" domain="[('risk_level','=','critical')]"/>
+                    <separator/>
+                    <filter string="High Failure Risk (&gt;70%)" name="filter_high_risk"
+                            domain="[('failure_probability','&gt;',0.7)]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Risk Level" name="group_risk" context="{'group_by': 'risk_level'}"/>
+                        <filter string="Asset" name="group_asset" context="{'group_by': 'asset_id'}"/>
+                        <filter string="Prediction Date" name="group_date" context="{'group_by': 'prediction_date'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- ACTION -->
+        <record id="action_assetflow_prediction" model="ir.actions.act_window">
+            <field name="name">Predictions</field>
+            <field name="res_model">assetflow.maintenance.prediction</field>
+            <field name="view_mode">list,kanban,form</field>
+            <field name="context">{'search_default_group_risk': 1}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">No predictions generated yet</p>
+            </field>
+        </record>
+
+        <!-- Menu action alias (referenced from Maintenance > Predictions) -->
+        <record id="action_assetflow_maintenance_prediction" model="ir.actions.act_window">
+            <field name="name">Maintenance Predictions</field>
+            <field name="res_model">assetflow.maintenance.prediction</field>
+            <field name="view_mode">list,kanban,form</field>
+        </record>
+
+    </data>
 </odoo>
