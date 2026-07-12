@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 from datetime import timedelta
 
 
@@ -37,6 +38,24 @@ class DemandForecast(models.Model):
         string="Reorder Suggested", compute="_compute_reorder_suggested", store=True
     )
     created_at = fields.Datetime(string="Created", default=fields.Datetime.now)
+
+    @api.constrains("predicted_qty")
+    def _check_predicted_qty(self):
+        for forecast in self:
+            if forecast.predicted_qty < 0:
+                raise ValidationError("Predicted quantity cannot be negative.")
+
+    @api.constrains("actual_qty")
+    def _check_actual_qty(self):
+        for forecast in self:
+            if forecast.actual_qty < 0:
+                raise ValidationError("Actual quantity cannot be negative.")
+
+    @api.constrains("accuracy")
+    def _check_accuracy(self):
+        for forecast in self:
+            if forecast.accuracy < 0 or forecast.accuracy > 100:
+                raise ValidationError("Accuracy must be between 0 and 100.")
 
     @api.depends("predicted_qty", "actual_qty")
     def _compute_accuracy(self):
@@ -124,3 +143,10 @@ class DemandForecast(models.Model):
     @api.model
     def _cron_refresh_forecasts(self):
         self._generate_all_forecasts()
+
+    def action_recalculate_forecast(self):
+        for forecast in self:
+            if forecast.product_id:
+                forecast._compute_accuracy()
+                forecast._compute_reorder_suggested()
+        return True

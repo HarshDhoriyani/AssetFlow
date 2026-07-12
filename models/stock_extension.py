@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 from datetime import timedelta
 
 
@@ -25,6 +26,14 @@ class StockQuantInherit(models.Model):
         compute="_compute_monthly_consumption",
         store=True,
     )
+
+    @api.constrains("avg_monthly_consumption", "monthly_consumption")
+    def _check_consumption_not_negative(self):
+        for quant in self:
+            if quant.avg_monthly_consumption < 0:
+                raise ValidationError("Average monthly consumption cannot be negative.")
+            if quant.monthly_consumption < 0:
+                raise ValidationError("Monthly consumption cannot be negative.")
 
     @api.depends("product_id")
     def _compute_avg_monthly_consumption(self):
@@ -86,3 +95,11 @@ class StockQuantInherit(models.Model):
                 quant.needs_reorder = True
             else:
                 quant.needs_reorder = False
+
+    def action_recalculate_predictions(self):
+        for quant in self:
+            quant._compute_avg_monthly_consumption()
+            quant._compute_monthly_consumption()
+            quant._compute_predicted_reorder_date()
+            quant._compute_needs_reorder()
+        return True

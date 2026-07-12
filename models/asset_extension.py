@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 from datetime import date, timedelta
 
 
@@ -44,6 +45,30 @@ class AssetExtension(models.Model):
         "maintenance.prediction", "asset_id", string="Predictions"
     )
 
+    @api.constrains("usage_hours")
+    def _check_usage_hours(self):
+        for asset in self:
+            if asset.usage_hours < 0:
+                raise ValidationError("Usage hours cannot be negative.")
+
+    @api.constrains("health_score")
+    def _check_health_score(self):
+        for asset in self:
+            if asset.health_score < 0 or asset.health_score > 100:
+                raise ValidationError("Health score must be between 0 and 100.")
+
+    @api.constrains("expected_life_years")
+    def _check_expected_life(self):
+        for asset in self:
+            if asset.expected_life_years < 0:
+                raise ValidationError("Expected life years cannot be negative.")
+
+    @api.constrains("date")
+    def _check_purchase_date(self):
+        for asset in self:
+            if asset.date and asset.date > date.today():
+                raise ValidationError("Purchase date cannot be in the future.")
+
     @api.depends("date", "value", "salvage_value", "usage_hours")
     def _compute_health_score(self):
         for asset in self:
@@ -69,9 +94,7 @@ class AssetExtension(models.Model):
                 ]
             )
             if maintenance_requests:
-                last_maint_date = max(
-                    m.request_date for m in maintenance_requests if m.request_date
-                )
+                last_maint_date = max(m.date for m in maintenance_requests if m.date)
                 if last_maint_date:
                     days_since = (today - last_maint_date).days
                     if days_since > 180:
@@ -101,6 +124,11 @@ class AssetExtension(models.Model):
             asset.health_score = score
             asset.risk_level = risk
             asset.predicted_failure_date = predicted_date
+
+    def action_recalculate_health(self):
+        for asset in self:
+            asset._compute_health_score()
+        return True
 
     @api.model
     def _cron_recalculate_health_scores(self):

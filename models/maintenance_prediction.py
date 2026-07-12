@@ -1,4 +1,5 @@
 from odoo import models, fields, api
+from odoo.exceptions import ValidationError
 from datetime import date, timedelta
 
 
@@ -49,6 +50,18 @@ class MaintenancePrediction(models.Model):
     prediction_date = fields.Datetime(
         string="Prediction Date", default=fields.Datetime.now
     )
+
+    @api.constrains("health_score")
+    def _check_health_score(self):
+        for pred in self:
+            if pred.health_score < 0 or pred.health_score > 100:
+                raise ValidationError("Health score must be between 0 and 100.")
+
+    @api.constrains("confidence")
+    def _check_confidence(self):
+        for pred in self:
+            if pred.confidence < 0 or pred.confidence > 100:
+                raise ValidationError("Confidence must be between 0 and 100.")
 
     @api.depends("health_score")
     def _compute_risk_level(self):
@@ -142,6 +155,15 @@ class MaintenancePrediction(models.Model):
     @api.model
     def _cron_update_predictions(self):
         self._generate_all_predictions()
+
+    def action_recalculate_prediction(self):
+        for pred in self:
+            if pred.asset_id:
+                pred._compute_risk_level()
+                pred._compute_predicted_failure()
+                pred._compute_confidence()
+                pred._compute_factors()
+        return True
 
     def action_create_maintenance_request(self):
         self.ensure_one()
