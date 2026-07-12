@@ -144,19 +144,66 @@ const Dashboard = () => {
 const Assets = () => {
   const [assets, setAssets] = useState([]);
   const { user } = useContext(AuthContext);
+  const [showCreate, setShowCreate] = useState(false);
+  const [showEdit, setShowEdit] = useState(null);
+  const [formData, setFormData] = useState({
+    name: '', asset_code: '', category: 'IT Hardware', current_location: 'Lab A', assigned_to: 'John Doe'
+  });
 
-  useEffect(() => {
-    axios.get(`${API_BASE}/assets`).then(res => setAssets(res.data));
-  }, []);
+  const fetchAssets = () => axios.get(`${API_BASE}/assets`).then(res => setAssets(res.data));
+  useEffect(() => { fetchAssets(); }, []);
+
+  const handleCreate = async (e) => {
+    e.preventDefault();
+    await axios.post(`${API_BASE}/assets`, { ...formData, state: 'active', purchase_value: 0, health_score: 100, risk_level: 'low' });
+    setShowCreate(false);
+    fetchAssets();
+  };
+
+  const handleEdit = async (e) => {
+    e.preventDefault();
+    await axios.put(`${API_BASE}/assets/${showEdit.id}`, showEdit);
+    setShowEdit(null);
+    fetchAssets();
+  };
 
   return (
     <div className="main-content">
       <div className="header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
         <h1>Assets Directory</h1>
         {user.role === 'Admin' && (
-          <button style={{padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer'}}>+ Create Asset</button>
+          <button onClick={() => setShowCreate(true)} style={{padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer'}}>+ Create Asset</button>
         )}
       </div>
+
+      {showCreate && (
+        <div className="glass-card" style={{marginBottom: '2rem'}}>
+          <h3>Create Asset</h3>
+          <form onSubmit={handleCreate} style={{display: 'flex', gap: '1rem', marginTop: '1rem', alignItems: 'flex-end'}}>
+            <input style={inputStyle} placeholder="Name" required onChange={e => setFormData({...formData, name: e.target.value})} />
+            <input style={inputStyle} placeholder="Code (AST-XXX)" required onChange={e => setFormData({...formData, asset_code: e.target.value})} />
+            <button type="submit" style={{padding: '0.75rem 1.5rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', height: '42px'}}>Create</button>
+            <button type="button" onClick={() => setShowCreate(false)} style={{padding: '0.75rem 1.5rem', background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', height: '42px'}}>Cancel</button>
+          </form>
+        </div>
+      )}
+
+      {showEdit && (
+        <div className="glass-card" style={{marginBottom: '2rem'}}>
+          <h3>Edit Asset {showEdit.asset_code}</h3>
+          <form onSubmit={handleEdit} style={{display: 'flex', gap: '1rem', marginTop: '1rem', alignItems: 'flex-end'}}>
+            <input style={inputStyle} value={showEdit.name} required onChange={e => setShowEdit({...showEdit, name: e.target.value})} />
+            <select style={inputStyle} value={showEdit.state} onChange={e => setShowEdit({...showEdit, state: e.target.value})}>
+              <option value="active">Active</option>
+              <option value="maintenance">Maintenance</option>
+              <option value="retired">Retired</option>
+            </select>
+            <button type="submit" style={{padding: '0.75rem 1.5rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', height: '42px'}}>Save</button>
+            <button type="button" onClick={() => setShowEdit(null)} style={{padding: '0.75rem 1.5rem', background: 'var(--danger)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', height: '42px'}}>Cancel</button>
+          </form>
+        </div>
+      )}
+
       <div className="glass-card table-container">
         <table>
           <thead>
@@ -184,7 +231,7 @@ const Assets = () => {
                   </div>
                 </td>
                 <td><span className={`badge ${asset.state}`}>{asset.state}</span></td>
-                {user.role === 'Admin' && <td><button style={{background: 'transparent', border: '1px solid var(--primary)', color: 'var(--primary)', padding: '0.25rem 0.5rem', borderRadius: '4px', cursor: 'pointer'}}>Edit</button></td>}
+                {user.role === 'Admin' && <td><button onClick={() => setShowEdit(asset)} style={{background: 'transparent', border: '1px solid var(--primary)', color: 'var(--primary)', padding: '0.25rem 0.5rem', borderRadius: '4px', cursor: 'pointer'}}>Edit</button></td>}
               </tr>
             ))}
           </tbody>
