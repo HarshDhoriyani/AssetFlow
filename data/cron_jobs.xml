@@ -1,3 +1,35 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <record id="ir_cron_health_score_recalculation" model="ir.cron">
+        <field name="name">AssetFlow: Recalculate Health Scores</field>
+        <field name="model_id" ref="account_asset.model_account_asset"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_recalculate_health_scores()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="ir_cron_maintenance_prediction" model="ir.cron">
+        <field name="name">AssetFlow: Update Maintenance Predictions</field>
+        <field name="model_id" ref="model_maintenance_prediction"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_update_predictions()</field>
+        <field name="interval_number">1</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
+
+    <record id="ir_cron_demand_forecast" model="ir.cron">
+        <field name="name">AssetFlow: Refresh Demand Forecasts</field>
+        <field name="model_id" ref="model_demand_forecast"/>
+        <field name="state">code</field>
+        <field name="code">model._cron_refresh_forecasts()</field>
+        <field name="interval_number">7</field>
+        <field name="interval_type">days</field>
+        <field name="numbercall">-1</field>
+        <field name="active">True</field>
+    </record>
 </odoo>
