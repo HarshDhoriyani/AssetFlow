@@ -1,152 +1,103 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
     <data>
-
-        <!-- ROOT APP -->
+        <!-- ROOT APP LAUNCHER ENTRY -->
         <menuitem id="menu_assetflow_root"
                   name="AssetFlow"
                   sequence="10"
                   web_icon="AssetFlow,static/description/icon.png"/>
 
-        <!-- DASHBOARD -->
+        <!-- 1. MASTER DASHBOARD PANEL -->
         <menuitem id="menu_assetflow_dashboard"
                   name="Dashboard"
                   parent="menu_assetflow_root"
                   sequence="10"
                   action="action_assetflow_dashboard"/>
 
-        <!-- ASSETS -->
+        <!-- 2. ASSETS DIRECTORY TREE -->
         <menuitem id="menu_assetflow_assets_root"
                   name="Assets"
                   parent="menu_assetflow_root"
                   sequence="20"/>
-
         <menuitem id="menu_assetflow_assets_all"
                   name="All Assets"
                   parent="menu_assetflow_assets_root"
                   sequence="10"
                   action="action_assetflow_asset"/>
-
         <menuitem id="menu_assetflow_assets_categories"
                   name="Categories"
                   parent="menu_assetflow_assets_root"
                   sequence="20"
                   action="action_assetflow_asset_category"/>
-
         <menuitem id="menu_assetflow_assets_allocation"
-                  name="Allocation"
+                  name="Allocation Pipelines"
                   parent="menu_assetflow_assets_root"
                   sequence="30"
                   action="action_assetflow_allocation"/>
-
         <menuitem id="menu_assetflow_assets_transfers"
                   name="Transfers"
                   parent="menu_assetflow_assets_root"
                   sequence="40"
                   action="action_assetflow_transfer"/>
 
-        <menuitem id="menu_assetflow_assets_retired"
-                  name="Retired Assets"
-                  parent="menu_assetflow_assets_root"
-                  sequence="50"
-                  action="action_assetflow_asset_retired"/>
-
-        <!-- INVENTORY -->
-        <menuitem id="menu_assetflow_inventory"
-                  name="Inventory"
+        <!-- 3. INVENTORY & STOCK LOGISTICS (now a parent category with 2 children) -->
+        <menuitem id="menu_assetflow_inventory_root"
+                  name="Inventory &amp; Demand"
                   parent="menu_assetflow_root"
-                  sequence="30"
+                  sequence="30"/>
+        <menuitem id="menu_assetflow_inventory_stock"
+                  name="Stock Levels"
+                  parent="menu_assetflow_inventory_root"
+                  sequence="10"
                   action="action_assetflow_stock"/>
+        <menuitem id="menu_assetflow_inventory_forecast"
+                  name="Demand Forecast"
+                  parent="menu_assetflow_inventory_root"
+                  sequence="20"
+                  action="action_assetflow_forecast"/>
 
-        <!-- MAINTENANCE -->
+        <!-- 4. MAINTENANCE ENGINE -->
         <menuitem id="menu_assetflow_maintenance_root"
                   name="Maintenance"
                   parent="menu_assetflow_root"
                   sequence="40"/>
-
         <menuitem id="menu_assetflow_maintenance_requests"
-                  name="Requests"
+                  name="Active Requests"
                   parent="menu_assetflow_maintenance_root"
                   sequence="10"
                   action="action_assetflow_maintenance_request"/>
-
-        <menuitem id="menu_assetflow_maintenance_approvals"
-                  name="Approvals"
+        <menuitem id="menu_assetflow_maintenance_predictions"
+                  name="AI Predictive Triggers"
                   parent="menu_assetflow_maintenance_root"
                   sequence="20"
-                  action="action_assetflow_maintenance_approval"/>
-
-        <menuitem id="menu_assetflow_maintenance_completed"
-                  name="Completed"
-                  parent="menu_assetflow_maintenance_root"
-                  sequence="30"
-                  action="action_assetflow_maintenance_completed"/>
-
-        <menuitem id="menu_assetflow_maintenance_predictions"
-                  name="Predictions"
-                  parent="menu_assetflow_maintenance_root"
-                  sequence="40"
-                  action="action_assetflow_maintenance_prediction"/>
-
-        <!-- BOOKINGS -->
-        <menuitem id="menu_assetflow_bookings"
-                  name="Bookings"
-                  parent="menu_assetflow_root"
-                  sequence="50"
-                  action="action_assetflow_booking"/>
-
-        <!-- AUDITS -->
-        <menuitem id="menu_assetflow_audits"
-                  name="Audits"
-                  parent="menu_assetflow_root"
-                  sequence="60"
-                  action="action_assetflow_audit_cycle"/>
-
-        <!-- PREDICTIONS -->
-        <menuitem id="menu_assetflow_predictions"
-                  name="Predictions"
-                  parent="menu_assetflow_root"
-                  sequence="70"
                   action="action_assetflow_prediction"/>
 
-        <!-- FORECASTS -->
-        <menuitem id="menu_assetflow_forecasts"
-                  name="Forecasts"
+        <!-- 5. REGULATORY AUDITS -->
+        <menuitem id="menu_assetflow_audits"
+                  name="Compliance Audits"
                   parent="menu_assetflow_root"
-                  sequence="80"
-                  action="action_assetflow_forecast"/>
+                  sequence="50"
+                  action="action_assetflow_audit_cycle"/>
 
-        <!-- REPORTS -->
+        <!-- 6. ANALYTICS & PRINT REPORTS -->
         <menuitem id="menu_assetflow_reports_root"
                   name="Reports"
                   parent="menu_assetflow_root"
-                  sequence="90"/>
-
+                  sequence="60"/>
         <menuitem id="menu_assetflow_reports_asset"
-                  name="Asset Report"
+                  name="Asset Lifecycle PDF"
                   parent="menu_assetflow_reports_root"
                   sequence="10"
                   action="action_report_assetflow_asset"/>
-
         <menuitem id="menu_assetflow_reports_audit"
-                  name="Audit Report"
+                  name="Audit Compliance PDF"
                   parent="menu_assetflow_reports_root"
                   sequence="20"
                   action="action_report_assetflow_audit"/>
-
         <menuitem id="menu_assetflow_reports_maintenance"
-                  name="Maintenance Report"
+                  name="Maintenance Operational PDF"
                   parent="menu_assetflow_reports_root"
                   sequence="30"
                   action="action_report_assetflow_maintenance"/>
-
-        <!-- SETTINGS -->
-        <menuitem id="menu_assetflow_settings"
-                  name="Settings"
-                  parent="menu_assetflow_root"
-                  sequence="100"
-                  groups="base.group_system"
-                  action="action_assetflow_settings"/>
-
     </data>
 </odoo>
