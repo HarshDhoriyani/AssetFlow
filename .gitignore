@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+
+# Odoo
+*.pot
+.odoorc
+odoo.log
+
+# Docker
+*.pid
+
+# OS / editor noise
+.DS_Store
+.vscode/
+.idea/
+*.swp
+
+# Local env
+.env
