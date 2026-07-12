@@ -115,6 +115,19 @@ def seed_db():
                 action="ASSET_CREATED",
                 target=random.choice(assets).asset_code
             ))
+            
+        # 5. Generate Demand Forecasts
+        for _ in range(8):
+            db.add(models.DemandForecast(
+                product_name=random.choice(["HVAC Filter Pack", "Motor Bearings", "Lubricant Oil 5L", "Coolant 10L", "Replacement Drive Belt", "Sensors Pack"]),
+                forecast_date=datetime.date.today(),
+                predicted_qty=round(random.uniform(20.0, 150.0), 1),
+                actual_qty=round(random.uniform(15.0, 160.0), 1),
+                accuracy=round(random.uniform(85.0, 99.0), 1),
+                method=random.choice(["sma", "ewma"]),
+                reorder_suggested=random.choice([True, False])
+            ))
+            
         db.commit()
     db.close()
 
@@ -206,3 +219,76 @@ def get_audits(db: Session = Depends(get_db), current_user: models.User = Depend
 @app.get("/api/activity", response_model=List[schemas.ActivityLog])
 def get_activity_logs(db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
     return db.query(models.ActivityLog).order_by(models.ActivityLog.timestamp.desc()).all()
+
+# --- ADMIN RBAC ENDPOINTS ---
+
+@app.get("/api/users", response_model=List[schemas.UserResponse])
+def get_users(db: Session = Depends(get_db), current_user: models.User = Depends(auth.require_admin)):
+    return db.query(models.User).all()
+
+@app.post("/api/assets", response_model=schemas.Asset)
+def create_asset(asset: schemas.AssetCreate, db: Session = Depends(get_db), current_user: models.User = Depends(auth.require_admin)):
+    db_asset = models.Asset(**asset.model_dump())
+    db.add(db_asset)
+    db.commit()
+    db.refresh(db_asset)
+    return db_asset
+
+@app.put("/api/assets/{asset_id}", response_model=schemas.Asset)
+def update_asset(asset_id: int, asset: schemas.AssetCreate, db: Session = Depends(get_db), current_user: models.User = Depends(auth.require_admin)):
+    db_asset = db.query(models.Asset).filter(models.Asset.id == asset_id).first()
+    if not db_asset:
+        raise HTTPException(status_code=404, detail="Asset not found")
+    for key, value in asset.model_dump().items():
+        setattr(db_asset, key, value)
+    db.commit()
+    db.refresh(db_asset)
+    return db_asset
+
+@app.post("/api/departments", response_model=schemas.Department)
+def create_department(dept: schemas.DepartmentCreate, db: Session = Depends(get_db), current_user: models.User = Depends(auth.require_admin)):
+    db_dept = models.Department(**dept.model_dump())
+    db.add(db_dept)
+    db.commit()
+    db.refresh(db_dept)
+    return db_dept
+
+@app.put("/api/departments/{dept_id}", response_model=schemas.Department)
+def update_department(dept_id: int, dept: schemas.DepartmentCreate, db: Session = Depends(get_db), current_user: models.User = Depends(auth.require_admin)):
+    db_dept = db.query(models.Department).filter(models.Department.id == dept_id).first()
+    if not db_dept:
+        raise HTTPException(status_code=404, detail="Department not found")
+    for key, value in dept.model_dump().items():
+        setattr(db_dept, key, value)
+    db.commit()
+    db.refresh(db_dept)
+    return db_dept
+
+@app.post("/api/bookings", response_model=schemas.ResourceBooking)
+def create_booking(booking: schemas.ResourceBookingCreate, db: Session = Depends(get_db), current_user: models.User = Depends(auth.get_current_user)):
+    from dateutil import parser
+    start_dt = parser.parse(booking.start_time)
+    end_dt = parser.parse(booking.end_time)
+    
+    # Overlap logic
+    overlapping = db.query(models.ResourceBooking).filter(
+        models.ResourceBooking.resource_name == booking.resource_name,
+        models.ResourceBooking.status == "confirmed",
+        models.ResourceBooking.start_time < end_dt,
+        models.ResourceBooking.end_time > start_dt
+    ).first()
+    
+    if overlapping:
+        raise HTTPException(status_code=400, detail="Resource is already booked during this time.")
+        
+    db_booking = models.ResourceBooking(
+        resource_name=booking.resource_name,
+        booked_by=booking.booked_by,
+        start_time=start_dt,
+        end_time=end_dt,
+        status="confirmed"
+    )
+    db.add(db_booking)
+    db.commit()
+    db.refresh(db_booking)
+    return db_booking

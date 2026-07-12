@@ -11,7 +11,8 @@ import {
   User as UserIcon,
   Calendar,
   ShieldCheck,
-  Activity
+  Activity,
+  Users
 } from 'lucide-react';
 
 import { AuthProvider, AuthContext } from './context/AuthContext';
@@ -42,6 +43,10 @@ const Sidebar = () => {
     { path: '/audits', label: 'Compliance Audits', icon: <ShieldCheck size={20} /> },
     { path: '/activity', label: 'Activity Logs', icon: <Activity size={20} /> },
   ];
+
+  if (user && user.role === 'Admin') {
+    navItems.push({ path: '/employees', label: 'Employee Directory', icon: <Users size={20} /> });
+  }
 
   return (
     <div className="sidebar" style={{display: 'flex', flexDirection: 'column', height: '100vh', overflowY: 'auto'}}>
@@ -132,19 +137,13 @@ const Dashboard = () => {
           <div className="stat-value" style={{color: 'var(--danger)'}}>{summary.high_risk_assets}</div>
         </div>
       </div>
-
-      <div className="dashboard-grid" style={{gridTemplateColumns: '1fr 1fr'}}>
-        <div className="glass-card">
-          <h3 style={{marginBottom: '1rem', fontWeight: 500}}>System Status</h3>
-          <p style={{color: 'var(--text-muted)'}}>All AI prediction models are online. Database connection stable.</p>
-        </div>
-      </div>
     </div>
   );
 };
 
 const Assets = () => {
   const [assets, setAssets] = useState([]);
+  const { user } = useContext(AuthContext);
 
   useEffect(() => {
     axios.get(`${API_BASE}/assets`).then(res => setAssets(res.data));
@@ -152,8 +151,11 @@ const Assets = () => {
 
   return (
     <div className="main-content">
-      <div className="header">
+      <div className="header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
         <h1>Assets Directory</h1>
+        {user.role === 'Admin' && (
+          <button style={{padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer'}}>+ Create Asset</button>
+        )}
       </div>
       <div className="glass-card table-container">
         <table>
@@ -165,6 +167,7 @@ const Assets = () => {
               <th>Location</th>
               <th>Health</th>
               <th>Status</th>
+              {user.role === 'Admin' && <th>Action</th>}
             </tr>
           </thead>
           <tbody>
@@ -181,6 +184,7 @@ const Assets = () => {
                   </div>
                 </td>
                 <td><span className={`badge ${asset.state}`}>{asset.state}</span></td>
+                {user.role === 'Admin' && <td><button style={{background: 'transparent', border: '1px solid var(--primary)', color: 'var(--primary)', padding: '0.25rem 0.5rem', borderRadius: '4px', cursor: 'pointer'}}>Edit</button></td>}
               </tr>
             ))}
           </tbody>
@@ -192,16 +196,10 @@ const Assets = () => {
 
 const Predictions = () => {
   const [predictions, setPredictions] = useState([]);
-  
-  useEffect(() => {
-    axios.get(`${API_BASE}/predictions`).then(res => setPredictions(res.data));
-  }, []);
-
+  useEffect(() => { axios.get(`${API_BASE}/predictions`).then(res => setPredictions(res.data)); }, []);
   return (
     <div className="main-content">
-      <div className="header">
-        <h1>AI Predictive Maintenance</h1>
-      </div>
+      <div className="header"><h1>AI Predictive Maintenance</h1></div>
       <div className="dashboard-grid">
         {predictions.map(pred => (
           <div key={pred.id} className="glass-card">
@@ -209,15 +207,9 @@ const Predictions = () => {
               <strong>Asset ID: {pred.asset_id}</strong>
               <span className={`badge ${pred.risk_level}`}>{pred.risk_level} Risk</span>
             </div>
-            <div style={{color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.5rem'}}>
-              Predicted Failure: {pred.predicted_failure_date}
-            </div>
-            <div style={{color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem'}}>
-              AI Confidence: {(pred.confidence * 100).toFixed(1)}%
-            </div>
-            <p style={{fontSize: '0.85rem', lineHeight: '1.4', padding: '0.75rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px'}}>
-              {pred.factors}
-            </p>
+            <div style={{color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '0.5rem'}}>Predicted Failure: {pred.predicted_failure_date}</div>
+            <div style={{color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem'}}>AI Confidence: {(pred.confidence * 100).toFixed(1)}%</div>
+            <p style={{fontSize: '0.85rem', lineHeight: '1.4', padding: '0.75rem', background: 'rgba(0,0,0,0.2)', borderRadius: '8px'}}>{pred.factors}</p>
           </div>
         ))}
       </div>
@@ -227,10 +219,63 @@ const Predictions = () => {
 
 const Bookings = () => {
   const [bookings, setBookings] = useState([]);
-  useEffect(() => { axios.get(`${API_BASE}/bookings`).then(res => setBookings(res.data)); }, []);
+  const [error, setError] = useState('');
+  const { user } = useContext(AuthContext);
+  const [formData, setFormData] = useState({
+    resource_name: 'Meeting Room A',
+    start_time: '',
+    end_time: ''
+  });
+
+  const fetchBookings = () => {
+    axios.get(`${API_BASE}/bookings`).then(res => setBookings(res.data));
+  };
+  useEffect(() => { fetchBookings(); }, []);
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setError('');
+    try {
+      await axios.post(`${API_BASE}/bookings`, {
+        ...formData,
+        booked_by: user.name,
+        status: 'confirmed'
+      });
+      fetchBookings();
+    } catch (err) {
+      setError(err.response?.data?.detail || 'Error creating booking');
+    }
+  };
+
   return (
     <div className="main-content">
       <div className="header"><h1>Shared Resource Bookings</h1></div>
+      
+      <div className="glass-card" style={{marginBottom: '2rem'}}>
+        <h3 style={{marginBottom: '1rem'}}>New Resource Allocation</h3>
+        {error && <div style={{color: 'var(--danger)', marginBottom: '1rem', padding: '10px', background: 'rgba(239, 68, 68, 0.1)', borderRadius: '8px'}}>{error}</div>}
+        <form onSubmit={handleSubmit} style={{display: 'flex', gap: '1rem', alignItems: 'flex-end'}}>
+          <div style={{flex: 1}}>
+            <label style={{display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)'}}>Resource Name</label>
+            <select style={inputStyle} value={formData.resource_name} onChange={e => setFormData({...formData, resource_name: e.target.value})}>
+              <option value="Meeting Room A">Meeting Room A</option>
+              <option value="Meeting Room B">Meeting Room B</option>
+              <option value="Projector Setup">Projector Setup</option>
+              <option value="Company Van">Company Van</option>
+            </select>
+          </div>
+          <div style={{flex: 1}}>
+            <label style={{display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)'}}>Start Time</label>
+            <input type="datetime-local" style={inputStyle} required value={formData.start_time} onChange={e => setFormData({...formData, start_time: e.target.value})} />
+          </div>
+          <div style={{flex: 1}}>
+            <label style={{display: 'block', marginBottom: '0.5rem', fontSize: '0.85rem', color: 'var(--text-muted)'}}>End Time</label>
+            <input type="datetime-local" style={inputStyle} required value={formData.end_time} onChange={e => setFormData({...formData, end_time: e.target.value})} />
+          </div>
+          <button type="submit" style={{padding: '0.75rem 1.5rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer', height: '42px'}}>Allocate</button>
+        </form>
+      </div>
+
       <div className="dashboard-grid">
         {bookings.map(b => (
           <div key={b.id} className="glass-card">
@@ -243,6 +288,10 @@ const Bookings = () => {
       </div>
     </div>
   );
+};
+
+const inputStyle = {
+  width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid var(--border)', background: 'rgba(0, 0, 0, 0.2)', color: 'white', outline: 'none'
 };
 
 const Audits = () => {
@@ -299,6 +348,103 @@ const ActivityLogs = () => {
   );
 };
 
+const MaintenanceRequests = () => {
+  const [requests, setRequests] = useState([]);
+  useEffect(() => { axios.get(`${API_BASE}/maintenance`).then(res => setRequests(res.data)); }, []);
+  return (
+    <div className="main-content">
+      <div className="header"><h1>Maintenance Workflows</h1></div>
+      <div className="glass-card table-container">
+        <table>
+          <thead>
+            <tr><th>Request ID</th><th>Asset ID</th><th>Assigned To</th><th>Status</th><th>Priority</th><th>Actual Cost</th></tr>
+          </thead>
+          <tbody>
+            {requests.map(req => (
+              <tr key={req.id}>
+                <td><strong>{req.name}</strong></td>
+                <td>{req.asset_id}</td>
+                <td>{req.assigned_to}</td>
+                <td><span className={`badge ${req.status === 'pending' ? 'warning' : 'active'}`}>{req.status}</span></td>
+                <td><span className={`badge ${req.priority === 'high' ? 'critical' : 'active'}`}>{req.priority}</span></td>
+                <td>${req.actual_cost}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
+const DemandForecasts = () => {
+  const [forecasts, setForecasts] = useState([]);
+  useEffect(() => { axios.get(`${API_BASE}/forecasts`).then(res => setForecasts(res.data)); }, []);
+  return (
+    <div className="main-content">
+      <div className="header"><h1>AI Demand Forecasting</h1></div>
+      <div className="dashboard-grid">
+        {forecasts.map(fc => (
+          <div key={fc.id} className="glass-card stat-card">
+            <h3 style={{marginBottom: '0.5rem'}}>{fc.product_name}</h3>
+            <div style={{color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '1rem'}}>Model: {fc.method.toUpperCase()} | Acc: {fc.accuracy}%</div>
+            <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem'}}>
+              <span>Predicted Qty:</span><strong>{fc.predicted_qty}</strong>
+            </div>
+            <div style={{display: 'flex', justifyContent: 'space-between', marginBottom: '1rem'}}>
+              <span>Actual Qty:</span><strong>{fc.actual_qty}</strong>
+            </div>
+            {fc.reorder_suggested ? (
+               <div className="badge critical" style={{width: 'max-content'}}>Reorder Suggested</div>
+            ) : (
+               <div className="badge active" style={{width: 'max-content'}}>Stock Optimal</div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+const Employees = () => {
+  const [employees, setEmployees] = useState([]);
+  const { user } = useContext(AuthContext);
+
+  useEffect(() => {
+    axios.get(`${API_BASE}/users`).then(res => setEmployees(res.data));
+  }, []);
+
+  return (
+    <div className="main-content">
+      <div className="header" style={{display: 'flex', justifyContent: 'space-between', alignItems: 'center'}}>
+        <h1>Employee Directory</h1>
+        {user.role === 'Admin' && (
+          <button style={{padding: '0.5rem 1rem', background: 'var(--primary)', color: 'white', border: 'none', borderRadius: '8px', cursor: 'pointer'}}>+ Add Employee</button>
+        )}
+      </div>
+      <div className="glass-card table-container">
+        <table>
+          <thead>
+            <tr><th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Company</th>{user.role === 'Admin' && <th>Action</th>}</tr>
+          </thead>
+          <tbody>
+            {employees.map(emp => (
+              <tr key={emp.id}>
+                <td>{emp.id}</td>
+                <td><strong>{emp.name}</strong></td>
+                <td>{emp.email}</td>
+                <td><span className="badge active">{emp.role}</span></td>
+                <td>{emp.company_name}</td>
+                {user.role === 'Admin' && <td><button style={{background: 'transparent', border: '1px solid var(--primary)', color: 'var(--primary)', padding: '0.25rem 0.5rem', borderRadius: '4px', cursor: 'pointer'}}>Edit</button></td>}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
+};
+
 // --- APP ROOT ---
 
 const AppContent = () => {
@@ -320,12 +466,13 @@ const AppContent = () => {
       <Routes>
         <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/assets" element={<ProtectedRoute><Assets /></ProtectedRoute>} />
-        <Route path="/maintenance" element={<ProtectedRoute><div className="main-content"><h1>Maintenance Requests</h1></div></ProtectedRoute>} />
+        <Route path="/maintenance" element={<ProtectedRoute><MaintenanceRequests /></ProtectedRoute>} />
         <Route path="/predictions" element={<ProtectedRoute><Predictions /></ProtectedRoute>} />
-        <Route path="/forecast" element={<ProtectedRoute><div className="main-content"><h1>Demand Forecasts</h1></div></ProtectedRoute>} />
+        <Route path="/forecast" element={<ProtectedRoute><DemandForecasts /></ProtectedRoute>} />
         <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
         <Route path="/audits" element={<ProtectedRoute><Audits /></ProtectedRoute>} />
         <Route path="/activity" element={<ProtectedRoute><ActivityLogs /></ProtectedRoute>} />
+        <Route path="/employees" element={<ProtectedRoute><Employees /></ProtectedRoute>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </div>

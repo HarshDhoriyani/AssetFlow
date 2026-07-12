@@ -100,20 +100,28 @@ class UserResponse(BaseModel):
     class Config:
         from_attributes = True
 
-class Department(BaseModel):
-    id: int
+class DepartmentBase(BaseModel):
     name: str
     manager_name: str
     budget: float
+
+class DepartmentCreate(DepartmentBase): pass
+
+class Department(DepartmentBase):
+    id: int
     class Config: from_attributes = True
 
-class ResourceBooking(BaseModel):
-    id: int
+class ResourceBookingBase(BaseModel):
     resource_name: str
     booked_by: str
     start_time: str
     end_time: str
-    status: str
+    status: str = "confirmed"
+
+class ResourceBookingCreate(ResourceBookingBase): pass
+
+class ResourceBooking(ResourceBookingBase):
+    id: int
     class Config: from_attributes = True
 
 class Audit(BaseModel):
