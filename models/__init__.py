@@ -1,3 +1,5 @@
+from . import location
+from . import asset_tag
 from . import asset
 from . import asset_extension
 from . import asset_category

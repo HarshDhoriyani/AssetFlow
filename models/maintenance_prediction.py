@@ -4,7 +4,7 @@ from datetime import date, timedelta
 
 
 class MaintenancePrediction(models.Model):
-    _name = "maintenance.prediction"
+    _name = "assetflow.maintenance.prediction"
     _description = "Maintenance Prediction"
     _order = "prediction_date desc"
 

@@ -25,7 +25,7 @@ class AssetExtension(models.Model):
         string="Predicted Failure Date", compute="_compute_health_score", store=True
     )
     prediction_ids = fields.One2many(
-        "maintenance.prediction", "asset_id", string="Predictions"
+        "assetflow.maintenance.prediction", "asset_id", string="Predictions"
     )
 
     @api.constrains("usage_hours")
