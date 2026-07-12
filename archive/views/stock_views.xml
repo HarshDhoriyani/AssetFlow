@@ -5,28 +5,25 @@
         <!-- LIST VIEW -->
         <record id="view_assetflow_stock_list" model="ir.ui.view">
             <field name="name">assetflow.stock.list</field>
-            <field name="model">assetflow.stock</field>
+            <field name="model">stock.quant</field>
             <field name="arch" type="xml">
-                <list string="Inventory &amp; Stock Health"
-                      decoration-danger="inventory_status == 'critical'"
-                      decoration-warning="inventory_status == 'low'">
+                <tree string="Inventory &amp; Stock Health"
+                      decoration-danger="needs_reorder == True"
+                      >
                     <field name="product_id" string="Product / Item"/>
-                    <field name="qty_available" string="Current Stock"/>
-                    <field name="forecast_demand" string="Forecast Demand"/>
-                    <field name="avg_consumption" string="Avg. Monthly Consumption" optional="show"/>
+                    <field name="quantity" string="Current Stock"/>
+                    <field name="monthly_consumption" string="Monthly Consumption"/>
+                    <field name="avg_monthly_consumption" string="Avg. Monthly Consumption" optional="show"/>
                     <field name="predicted_reorder_date" string="Predicted Reorder Date"/>
-                    <field name="inventory_status" string="Inventory Health" widget="badge"
-                           decoration-success="inventory_status == 'healthy'"
-                           decoration-warning="inventory_status == 'low'"
-                           decoration-danger="inventory_status == 'critical'"/>
-                </list>
+                    <field name="needs_reorder" string="Needs Reorder"/>
+                </tree>
             </field>
         </record>
 
         <!-- FORM VIEW -->
         <record id="view_assetflow_stock_form" model="ir.ui.view">
             <field name="name">assetflow.stock.form</field>
-            <field name="model">assetflow.stock</field>
+            <field name="model">stock.quant</field>
             <field name="arch" type="xml">
                 <form string="Stock Item Detail">
                     <sheet>
@@ -35,19 +32,16 @@
                         </div>
                         <group>
                             <group string="Current Levels">
-                                <field name="qty_available"/>
-                                <field name="avg_consumption"/>
+                                <field name="quantity"/>
+                                <field name="avg_monthly_consumption"/>
                             </group>
                             <group string="Forecast &amp; Reorder">
-                                <field name="forecast_demand"/>
+                                <field name="monthly_consumption"/>
                                 <field name="predicted_reorder_date"/>
                             </group>
                         </group>
                         <group string="Health Status">
-                            <field name="inventory_status" widget="badge"
-                                   decoration-success="inventory_status == 'healthy'"
-                                   decoration-warning="inventory_status == 'low'"
-                                   decoration-danger="inventory_status == 'critical'"/>
+                            <field name="needs_reorder" string="Needs Reorder"/>
                         </group>
                     </sheet>
                 </form>
@@ -57,16 +51,14 @@
         <!-- SEARCH VIEW -->
         <record id="view_assetflow_stock_search" model="ir.ui.view">
             <field name="name">assetflow.stock.search</field>
-            <field name="model">assetflow.stock</field>
+            <field name="model">stock.quant</field>
             <field name="arch" type="xml">
                 <search string="Search Stock">
                     <field name="product_id"/>
                     <filter string="Needs Reorder" name="filter_needs_reorder"
-                            domain="[('inventory_status','in',('low','critical'))]"/>
-                    <filter string="Critical" name="filter_critical" domain="[('inventory_status','=','critical')]"/>
-                    <filter string="Healthy" name="filter_healthy" domain="[('inventory_status','=','healthy')]"/>
-                    <group expand="0" string="Group By">
-                        <filter string="Inventory Health" name="group_status" context="{'group_by': 'inventory_status'}"/>
+                            domain="[('needs_reorder','=',True)]"/>
+                                                            <group expand="0" string="Group By">
+                        <filter string="Inventory Health" name="group_status" context="{'group_by': 'needs_reorder'}"/>
                         <filter string="Product" name="group_product" context="{'group_by': 'product_id'}"/>
                     </group>
                 </search>
@@ -76,7 +68,7 @@
         <!-- WINDOW ACTION -->
         <record id="action_assetflow_stock" model="ir.actions.act_window">
             <field name="name">Stock Levels &amp; Health</field>
-            <field name="res_model">assetflow.stock</field>
+            <field name="res_model">stock.quant</field>
             <field name="view_mode">list,form</field>
             <field name="context">{'search_default_filter_needs_reorder': 0}</field>
             <field name="help" type="html">

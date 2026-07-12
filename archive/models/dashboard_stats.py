@@ -3,10 +3,26 @@ from datetime import date, timedelta
 
 
 class DashboardStats(models.Model):
-    _name = "dashboard.stats"
+    _name = "assetflow.dashboard.stats"
     _description = "Dashboard Statistics"
 
     name = fields.Char(string="Name", default="Dashboard Stats")
+    
+    total_active_assets = fields.Integer(compute="_compute_dashboard_kpis")
+    pending_maintenance_count = fields.Integer(compute="_compute_dashboard_kpis")
+    critical_risk_count = fields.Integer(compute="_compute_dashboard_kpis")
+    budget_leakage = fields.Monetary(compute="_compute_dashboard_kpis", currency_field="currency_id")
+    currency_id = fields.Many2one('res.currency', default=lambda self: self.env.company.currency_id)
+
+    def _compute_dashboard_kpis(self):
+        for rec in self:
+            asset_metrics = rec.get_asset_metrics()
+            maint_metrics = rec.get_maintenance_metrics()
+            rec.total_active_assets = asset_metrics.get("active", 0)
+            rec.critical_risk_count = asset_metrics.get("critical_risk_count", 0)
+            rec.pending_maintenance_count = maint_metrics.get("open_maintenance", 0)
+            # Budget leakage isn't currently calculated in metrics, returning 0 for now
+            rec.budget_leakage = 0.0
 
     def get_asset_metrics(self):
         assets = self.env["assetflow.asset"].search([])
@@ -57,7 +73,7 @@ class DashboardStats(models.Model):
         total_value = sum(
             q.quantity_available * q.product_id.standard_price for q in quants
         )
-        forecasts = self.env["demand.forecast"].search([])
+        forecasts = self.env["assetflow.demand.forecast"].search([])
         avg_accuracy = sum(f.accuracy for f in forecasts if f.accuracy) / max(
             len(forecasts), 1
         )

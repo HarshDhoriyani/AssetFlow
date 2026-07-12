@@ -7,19 +7,14 @@
             <field name="name">assetflow.demand.forecast.list</field>
             <field name="model">assetflow.demand.forecast</field>
             <field name="arch" type="xml">
-                <list string="Demand Forecasts"
-                      decoration-danger="forecast_qty - actual_qty and abs(forecast_qty - actual_qty) &gt; forecast_qty * 0.2">
+                <tree string="Demand Forecasts"
+                      decoration-danger="accuracy &lt; 80">
                     <field name="product_id"/>
-                    <field name="period_date"/>
-                    <field name="forecast_qty" sum="Total Forecast"/>
+                    <field name="forecast_date"/>
+                    <field name="predicted_qty" sum="Total Forecast"/>
                     <field name="actual_qty" sum="Total Actual"/>
-                    <field name="average_consumption"/>
-                    <field name="predicted_reorder_date"/>
-                    <field name="inventory_health" widget="badge"
-                           decoration-success="inventory_health == 'healthy'"
-                           decoration-warning="inventory_health == 'monitor'"
-                           decoration-danger="inventory_health in ('warning', 'critical')"/>
-                </list>
+                                                            <field name="reorder_suggested" widget="boolean_toggle"/>
+                </tree>
             </field>
         </record>
 
@@ -29,8 +24,8 @@
             <field name="model">assetflow.demand.forecast</field>
             <field name="arch" type="xml">
                 <graph string="Forecast vs Actual Demand" type="line">
-                    <field name="period_date" type="row" interval="month"/>
-                    <field name="forecast_qty" type="measure"/>
+                    <field name="forecast_date" type="row" interval="month"/>
+                    <field name="predicted_qty" type="measure"/>
                     <field name="actual_qty" type="measure"/>
                 </graph>
             </field>
@@ -43,8 +38,8 @@
             <field name="arch" type="xml">
                 <pivot string="Inventory Trend Analysis">
                     <field name="product_id" type="row"/>
-                    <field name="period_date" type="col" interval="month"/>
-                    <field name="forecast_qty" type="measure"/>
+                    <field name="forecast_date" type="col" interval="month"/>
+                    <field name="predicted_qty" type="measure"/>
                     <field name="actual_qty" type="measure"/>
                 </pivot>
             </field>
@@ -57,14 +52,14 @@
             <field name="arch" type="xml">
                 <search string="Search Forecasts">
                     <field name="product_id"/>
-                    <field name="period_date"/>
-                    <filter string="Needs Reorder" name="filter_reorder" domain="[('inventory_health','in',('warning','critical'))]"/>
+                    <field name="forecast_date"/>
+                    <filter string="Needs Reorder" name="filter_reorder" domain="[('reorder_suggested','=',True)]"/>
                     <filter string="This Month" name="filter_this_month"
-                            domain="[('period_date','&gt;=', context_today().strftime('%Y-%m-01'))]"/>
+                            domain="[('forecast_date','&gt;=', context_today().strftime('%Y-%m-01'))]"/>
                     <group expand="0" string="Group By">
                         <filter string="Product" name="group_product" context="{'group_by': 'product_id'}"/>
-                        <filter string="Month" name="group_month" context="{'group_by': 'period_date:month'}"/>
-                        <filter string="Inventory Health" name="group_health" context="{'group_by': 'inventory_health'}"/>
+                        <filter string="Month" name="group_month" context="{'group_by': 'forecast_date:month'}"/>
+                        <filter string="Inventory Health" name="group_health" context="{'group_by': 'reorder_suggested'}"/>
                     </group>
                 </search>
             </field>

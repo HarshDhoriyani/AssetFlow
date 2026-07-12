@@ -24,7 +24,7 @@
 
     <record id="ir_cron_demand_forecast" model="ir.cron">
         <field name="name">AssetFlow: Refresh Demand Forecasts</field>
-        <field name="model_id" ref="model_demand_forecast"/>
+        <field name="model_id" ref="model_assetflow_demand_forecast"/>
         <field name="state">code</field>
         <field name="code">model._cron_refresh_forecasts()</field>
         <field name="interval_number">7</field>

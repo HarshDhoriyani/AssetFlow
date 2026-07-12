@@ -4,7 +4,7 @@ from datetime import timedelta
 
 
 class DemandForecast(models.Model):
-    _name = "demand.forecast"
+    _name = "assetflow.demand.forecast"
     _description = "Demand Forecast"
     _order = "forecast_date desc"
 

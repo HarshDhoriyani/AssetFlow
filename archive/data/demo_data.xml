@@ -261,7 +261,7 @@
         </record>
 
         <!-- ==================== DEMAND FORECASTS ==================== -->
-        <record id="forecast_bearing_sma" model="demand.forecast">
+        <record id="forecast_bearing_sma" model="assetflow.demand.forecast">
             <field name="product_id" ref="product_bearing_6205"/>
             <field name="forecast_date">2026-07-01</field>
             <field name="predicted_qty">45</field>
@@ -269,7 +269,7 @@
             <field name="method">sma</field>
             <field name="period">monthly</field>
         </record>
-        <record id="forecast_bearing_ewma" model="demand.forecast">
+        <record id="forecast_bearing_ewma" model="assetflow.demand.forecast">
             <field name="product_id" ref="product_bearing_6205"/>
             <field name="forecast_date">2026-07-01</field>
             <field name="predicted_qty">48</field>
@@ -277,7 +277,7 @@
             <field name="method">ewma</field>
             <field name="period">monthly</field>
         </record>
-        <record id="forecast_hydraulic_sma" model="demand.forecast">
+        <record id="forecast_hydraulic_sma" model="assetflow.demand.forecast">
             <field name="product_id" ref="product_hydraulic_oil"/>
             <field name="forecast_date">2026-07-01</field>
             <field name="predicted_qty">18</field>
@@ -285,7 +285,7 @@
             <field name="method">sma</field>
             <field name="period">monthly</field>
         </record>
-        <record id="forecast_hydraulic_ewma" model="demand.forecast">
+        <record id="forecast_hydraulic_ewma" model="assetflow.demand.forecast">
             <field name="product_id" ref="product_hydraulic_oil"/>
             <field name="forecast_date">2026-07-01</field>
             <field name="predicted_qty">17</field>
@@ -293,7 +293,7 @@
             <field name="method">ewma</field>
             <field name="period">monthly</field>
         </record>
-        <record id="forecast_vbelt_sma" model="demand.forecast">
+        <record id="forecast_vbelt_sma" model="assetflow.demand.forecast">
             <field name="product_id" ref="product_vbelt_a68"/>
             <field name="forecast_date">2026-07-01</field>
             <field name="predicted_qty">25</field>
@@ -301,7 +301,7 @@
             <field name="method">sma</field>
             <field name="period">monthly</field>
         </record>
-        <record id="forecast_filter_sma" model="demand.forecast">
+        <record id="forecast_filter_sma" model="assetflow.demand.forecast">
             <field name="product_id" ref="product_air_filter"/>
             <field name="forecast_date">2026-07-01</field>
             <field name="predicted_qty">12</field>
@@ -309,7 +309,7 @@
             <field name="method">sma</field>
             <field name="period">monthly</field>
         </record>
-        <record id="forecast_filter_ewma" model="demand.forecast">
+        <record id="forecast_filter_ewma" model="assetflow.demand.forecast">
             <field name="product_id" ref="product_air_filter"/>
             <field name="forecast_date">2026-07-01</field>
             <field name="predicted_qty">11</field>
@@ -317,7 +317,7 @@
             <field name="method">ewma</field>
             <field name="period">monthly</field>
         </record>
-        <record id="forecast_grease_sma" model="demand.forecast">
+        <record id="forecast_grease_sma" model="assetflow.demand.forecast">
             <field name="product_id" ref="product_grease_tube"/>
             <field name="forecast_date">2026-07-01</field>
             <field name="predicted_qty">60</field>
@@ -325,7 +325,7 @@
             <field name="method">sma</field>
             <field name="period">monthly</field>
         </record>
-        <record id="forecast_coolant_sma" model="demand.forecast">
+        <record id="forecast_coolant_sma" model="assetflow.demand.forecast">
             <field name="product_id" ref="product_coolant"/>
             <field name="forecast_date">2026-07-01</field>
             <field name="predicted_qty">8</field>
@@ -333,7 +333,7 @@
             <field name="method">sma</field>
             <field name="period">monthly</field>
         </record>
-        <record id="forecast_coolant_ewma" model="demand.forecast">
+        <record id="forecast_coolant_ewma" model="assetflow.demand.forecast">
             <field name="product_id" ref="product_coolant"/>
             <field name="forecast_date">2026-07-01</field>
             <field name="predicted_qty">9</field>
@@ -341,7 +341,7 @@
             <field name="method">ewma</field>
             <field name="period">monthly</field>
         </record>
-        <record id="forecast_cutting_sma" model="demand.forecast">
+        <record id="forecast_cutting_sma" model="assetflow.demand.forecast">
             <field name="product_id" ref="product_cutting_tool"/>
             <field name="forecast_date">2026-07-01</field>
             <field name="predicted_qty">30</field>
@@ -349,7 +349,7 @@
             <field name="method">sma</field>
             <field name="period">monthly</field>
         </record>
-        <record id="forecast_sensor_sma" model="demand.forecast">
+        <record id="forecast_sensor_sma" model="assetflow.demand.forecast">
             <field name="product_id" ref="product_pressure_sensor"/>
             <field name="forecast_date">2026-07-01</field>
             <field name="predicted_qty">5</field>
@@ -357,7 +357,7 @@
             <field name="method">sma</field>
             <field name="period">monthly</field>
         </record>
-        <record id="forecast_coupling_sma" model="demand.forecast">
+        <record id="forecast_coupling_sma" model="assetflow.demand.forecast">
             <field name="product_id" ref="product_motor_coupling"/>
             <field name="forecast_date">2026-07-01</field>
             <field name="predicted_qty">8</field>
@@ -365,7 +365,7 @@
             <field name="method">sma</field>
             <field name="period">monthly</field>
         </record>
-        <record id="forecast_relay_sma" model="demand.forecast">
+        <record id="forecast_relay_sma" model="assetflow.demand.forecast">
             <field name="product_id" ref="product_electrical_relay"/>
             <field name="forecast_date">2026-07-01</field>
             <field name="predicted_qty">15</field>

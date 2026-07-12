@@ -7,26 +7,25 @@
             <field name="name">assetflow.asset.list</field>
             <field name="model">assetflow.asset</field>
             <field name="arch" type="xml">
-                <list string="Assets"
+                <tree string="Assets"
                       decoration-danger="risk_level == 'critical'"
                       decoration-warning="risk_level == 'warning'"
-                      decoration-muted="status == 'retired'">
+                      decoration-muted="state == 'retired'">
                     <field name="asset_code"/>
                     <field name="name"/>
                     <field name="category_id"/>
-                    <field name="department_id"/>
-                    <field name="assigned_to_id"/>
-                    <field name="status" widget="badge"
-                           decoration-success="status == 'available'"
-                           decoration-info="status == 'allocated'"
-                           decoration-warning="status == 'maintenance'"
-                           decoration-muted="status == 'retired'"/>
+                                        <field name="assigned_to"/>
+                    <field name="state" widget="badge"
+                           decoration-success="state == 'active'"
+                           decoration-info="state == 'allocated'"
+                           decoration-warning="state == 'maintenance'"
+                           decoration-muted="state == 'retired'"/>
                     <field name="health_score" widget="progressbar"/>
                     <field name="risk_level" widget="badge"
-                           decoration-success="risk_level == 'healthy'"
-                           decoration-warning="risk_level == 'monitor'"
-                           decoration-danger="risk_level in ('warning','critical')"/>
-                </list>
+                           decoration-success="risk_level == 'low'"
+                           decoration-warning="risk_level == 'medium'"
+                           decoration-danger="risk_level in ('high','critical')"/>
+                </tree>
             </field>
         </record>
 
@@ -37,11 +36,11 @@
             <field name="arch" type="xml">
                 <form string="Asset">
                     <header>
-                        <field name="status" widget="statusbar"
-                               statusbar_visible="available,allocated,maintenance,retired"/>
+                        <field name="state" widget="statusbar"
+                               statusbar_visible="active,allocated,maintenance,retired"/>
                     </header>
                     <sheet>
-                        <field name="image_1920" widget="image" class="oe_avatar"/>
+                        <field name="image" widget="image" class="oe_avatar"/>
                         <div class="oe_title">
                             <h1><field name="name" placeholder="Asset Name"/></h1>
                             <field name="asset_code" placeholder="Asset ID / Code"/>
@@ -49,57 +48,47 @@
                         <group>
                             <group string="Basic Details">
                                 <field name="category_id"/>
-                                <field name="department_id"/>
-                                <field name="assigned_to_id"/>
-                                <field name="location_id"/>
+                                                                <field name="assigned_to"/>
+                                <field name="current_location_id"/>
                             </group>
                             <group string="Purchase Info">
                                 <field name="purchase_date"/>
                                 <field name="purchase_value"/>
-                                <field name="vendor_id"/>
-                                <field name="warranty_expiry"/>
+                                                                <field name="warranty_expiry"/>
                             </group>
                         </group>
                         <group>
                             <group string="Health &amp; Risk">
                                 <field name="health_score" widget="progressbar"/>
                                 <field name="risk_level" widget="badge"
-                                       decoration-success="risk_level == 'healthy'"
-                                       decoration-warning="risk_level in ('monitor','warning')"
+                                       decoration-success="risk_level == 'low'"
+                                       decoration-warning="risk_level in ('medium','high')"
                                        decoration-danger="risk_level == 'critical'"/>
                             </group>
                         </group>
                         <notebook>
                             <page string="Maintenance History">
-                                <field name="maintenance_ids">
-                                    <list>
+                                <field name="maintenance_request_ids">
+                                    <tree>
                                         <field name="name"/>
                                         <field name="request_date"/>
-                                        <field name="status" widget="badge"
+                                        <field name="state" widget="badge"
                                                decoration-warning="status == 'pending'"
                                                decoration-info="status == 'approved'"
                                                decoration-warning="status == 'in_progress'"
                                                decoration-success="status == 'completed'"
                                                decoration-danger="status == 'rejected'"/>
-                                    </list>
+                                    </tree>
                                 </field>
                             </page>
-                            <page string="Audit History">
-                                <field name="audit_line_ids">
-                                    <list>
-                                        <field name="audit_cycle_id"/>
-                                        <field name="audit_date"/>
-                                        <field name="result"/>
-                                    </list>
-                                </field>
-                            </page>
+                            
                             <page string="Prediction History">
                                 <field name="prediction_ids">
-                                    <list>
+                                    <tree>
                                         <field name="prediction_date"/>
                                         <field name="health_score" widget="progressbar"/>
                                         <field name="risk_level" widget="badge"/>
-                                    </list>
+                                    </tree>
                                 </field>
                             </page>
                             <page string="Attachments">
@@ -122,35 +111,35 @@
             <field name="model">assetflow.asset</field>
             <field name="arch" type="xml">
                 <kanban class="o_kanban_small_column">
-                    <field name="status"/>
+                    <field name="state"/>
                     <field name="risk_level"/>
                     <field name="health_score"/>
                     <templates>
                         <t t-name="card">
                             <div class="oe_kanban_card oe_kanban_global_click">
                                 <div class="o_kanban_image">
-                                    <field name="image_128" widget="image" class="o_kanban_image_fill_left"/>
+                                    <field name="image" widget="image" class="o_kanban_image_fill_left"/>
                                 </div>
                                 <div class="oe_kanban_details">
                                     <strong><field name="name"/></strong>
                                     <div>
-                                        <field name="status" widget="badge"
-                                               decoration-success="status == 'available'"
-                                               decoration-info="status == 'allocated'"
-                                               decoration-warning="status == 'maintenance'"
-                                               decoration-muted="status == 'retired'"/>
+                                        <field name="state" widget="badge"
+                                               decoration-success="state == 'active'"
+                                               decoration-info="state == 'allocated'"
+                                               decoration-warning="state == 'maintenance'"
+                                               decoration-muted="state == 'retired'"/>
                                     </div>
                                     <div>
                                         <field name="health_score" widget="progressbar"/>
                                     </div>
                                     <div>
                                         <field name="risk_level" widget="badge"
-                                               decoration-success="risk_level == 'healthy'"
-                                               decoration-warning="risk_level in ('monitor','warning')"
+                                               decoration-success="risk_level == 'low'"
+                                               decoration-warning="risk_level in ('medium','high')"
                                                decoration-danger="risk_level == 'critical'"/>
                                     </div>
                                     <div>
-                                        <field name="assigned_to_id" widget="many2one_avatar_user"/>
+                                        <field name="assigned_to" widget="many2one_avatar_user"/>
                                     </div>
                                 </div>
                             </div>
@@ -169,18 +158,16 @@
                     <field name="name"/>
                     <field name="asset_code"/>
                     <field name="category_id"/>
-                    <field name="department_id"/>
-                    <field name="assigned_to_id"/>
-                    <filter string="Available" name="filter_available" domain="[('status','=','available')]"/>
-                    <filter string="Allocated" name="filter_allocated" domain="[('status','=','allocated')]"/>
-                    <filter string="Under Maintenance" name="filter_maintenance" domain="[('status','=','maintenance')]"/>
-                    <filter string="Retired" name="filter_retired" domain="[('status','=','retired')]"/>
+                                        <field name="assigned_to"/>
+                    <filter string="Available" name="filter_available" domain="[('state','=','active')]"/>
+                    <filter string="Allocated" name="filter_allocated" domain="[('state','=','allocated')]"/>
+                    <filter string="Under Maintenance" name="filter_maintenance" domain="[('state','=','maintenance')]"/>
+                    <filter string="Retired" name="filter_retired" domain="[('state','=','retired')]"/>
                     <separator/>
                     <filter string="Critical Risk" name="filter_critical" domain="[('risk_level','=','critical')]"/>
                     <group expand="0" string="Group By">
                         <filter string="Category" name="group_category" context="{'group_by': 'category_id'}"/>
-                        <filter string="Department" name="group_department" context="{'group_by': 'department_id'}"/>
-                        <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                                                <filter string="Status" name="group_status" context="{'group_by': 'state'}"/>
                         <filter string="Risk Level" name="group_risk" context="{'group_by': 'risk_level'}"/>
                     </group>
                 </search>

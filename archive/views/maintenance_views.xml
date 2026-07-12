@@ -7,7 +7,7 @@
             <field name="name">assetflow.maintenance.request.list</field>
             <field name="model">assetflow.maintenance.request</field>
             <field name="arch" type="xml">
-                <list string="Maintenance Requests"
+                <tree string="Maintenance Requests"
                       decoration-warning="status == 'pending'"
                       decoration-info="status == 'approved'"
                       decoration-muted="status == 'in_progress'"
@@ -16,7 +16,7 @@
                     <field name="name"/>
                     <field name="asset_id"/>
                     <field name="request_date"/>
-                    <field name="requested_by_id"/>
+                    <field name="requested_by"/>
                     <field name="priority" widget="priority"/>
                     <field name="status" widget="badge"
                            decoration-warning="status == 'pending'"
@@ -24,7 +24,7 @@
                            decoration-warning="status == 'in_progress'"
                            decoration-success="status == 'completed'"
                            decoration-danger="status == 'rejected'"/>
-                </list>
+                </tree>
             </field>
         </record>
 
@@ -53,12 +53,12 @@
                         <group>
                             <group string="Request Details">
                                 <field name="asset_id"/>
-                                <field name="requested_by_id"/>
+                                <field name="requested_by"/>
                                 <field name="request_date"/>
                                 <field name="priority" widget="priority"/>
                             </group>
                             <group string="Assignment">
-                                <field name="assigned_technician_id"/>
+                                <field name="assigned_to"/>
                                 <field name="scheduled_date"/>
                                 <field name="completion_date"
                                        invisible="status != 'completed'"/>
@@ -66,12 +66,12 @@
                         </group>
                         <notebook>
                             <page string="Parts Used">
-                                <field name="part_ids">
-                                    <list editable="bottom">
+                                <field name="parts_needed">
+                                    <tree editable="bottom">
                                         <field name="product_id"/>
                                         <field name="quantity"/>
-                                        <field name="cost"/>
-                                    </list>
+                                        <field name="subtotal"/>
+                                    </tree>
                                 </field>
                             </page>
                             <page string="Description &amp; Notes">
@@ -102,7 +102,7 @@
                                 <strong><field name="name"/></strong>
                                 <div><field name="asset_id"/></div>
                                 <div><field name="priority" widget="priority"/></div>
-                                <div><field name="assigned_technician_id" widget="many2one_avatar_user"/></div>
+                                <div><field name="assigned_to" widget="many2one_avatar_user"/></div>
                             </div>
                         </t>
                     </templates>
@@ -118,7 +118,7 @@
                 <search string="Search Maintenance Requests">
                     <field name="name"/>
                     <field name="asset_id"/>
-                    <field name="assigned_technician_id"/>
+                    <field name="assigned_to"/>
                     <filter string="Pending" name="filter_pending" domain="[('status','=','pending')]"/>
                     <filter string="Approved" name="filter_approved" domain="[('status','=','approved')]"/>
                     <filter string="In Progress" name="filter_in_progress" domain="[('status','=','in_progress')]"/>
@@ -127,7 +127,7 @@
                     <group expand="0" string="Group By">
                         <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
                         <filter string="Priority" name="group_priority" context="{'group_by': 'priority'}"/>
-                        <filter string="Technician" name="group_tech" context="{'group_by': 'assigned_technician_id'}"/>
+                        <filter string="Technician" name="group_tech" context="{'group_by': 'assigned_to'}"/>
                     </group>
                 </search>
             </field>
