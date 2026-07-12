@@ -1,10 +1,109 @@
-# models/dashboard_stats.py
-
-from odoo import models, fields
+from odoo import models, fields, api
+from datetime import date, timedelta
 
 
 class DashboardStats(models.Model):
-    _name = 'assetflow.dashboard.stats'
-    _description = 'Dashboard Stats'
+    _name = "dashboard.stats"
+    _description = "Dashboard Statistics"
 
-    name = fields.Char(string='Name')
+    name = fields.Char(string="Name", default="Dashboard Stats")
+
+    def get_asset_metrics(self):
+        assets = self.env["account.asset"].search([])
+        active = self.env["account.asset"].search_count([("state", "=", "active")])
+        under_maintenance = self.env["account.asset"].search_count(
+            [("state", "=", "under_maintenance")]
+        )
+        retired = self.env["account.asset"].search_count([("state", "=", "retired")])
+        avg_health = sum(a.health_score for a in assets if a.health_score) / max(
+            len(assets), 1
+        )
+        critical_count = self.env["account.asset"].search_count(
+            [("risk_level", "=", "critical")]
+        )
+        upcoming_failures = self.env["account.asset"].search_count(
+            [
+                ("predicted_failure_date", ">=", date.today()),
+                ("predicted_failure_date", "<=", date.today() + timedelta(days=30)),
+                ("state", "=", "active"),
+            ]
+        )
+        return {
+            "total_assets": len(assets),
+            "active": active,
+            "under_maintenance": under_maintenance,
+            "retired": retired,
+            "avg_health_score": round(avg_health, 1),
+            "critical_risk_count": critical_count,
+            "upcoming_failures_30d": upcoming_failures,
+        }
+
+    def get_inventory_metrics(self):
+        quants = self.env["stock.quant"].search(
+            [
+                ("location_id.usage", "=", "internal"),
+            ]
+        )
+        needs_reorder = self.env["stock.quant"].search_count(
+            [
+                ("needs_reorder", "=", True),
+                ("location_id.usage", "=", "internal"),
+            ]
+        )
+        total_value = sum(
+            q.quantity_available * q.product_id.standard_price for q in quants
+        )
+        forecasts = self.env["demand.forecast"].search([])
+        avg_accuracy = sum(f.accuracy for f in forecasts if f.accuracy) / max(
+            len(forecasts), 1
+        )
+        return {
+            "items_need_reorder": needs_reorder,
+            "total_inventory_value": round(total_value, 2),
+            "forecast_accuracy": round(avg_accuracy, 1),
+        }
+
+    def get_maintenance_metrics(self):
+        open_requests = self.env["maintenance.request"].search_count(
+            [
+                ("state", "not in", ["done", "cancelled"]),
+            ]
+        )
+        overdue = self.env["maintenance.request"].search_count(
+            [
+                ("state", "not in", ["done", "cancelled"]),
+                ("scheduled_date", "<", date.today()),
+            ]
+        )
+        completed = self.env["maintenance.request"].search_count(
+            [("state", "=", "done")]
+        )
+        total = self.env["maintenance.request"].search_count([])
+        completion_rate = (completed / max(total, 1)) * 100
+        return {
+            "open_maintenance": open_requests,
+            "overdue_maintenance": overdue,
+            "completion_rate": round(completion_rate, 1),
+        }
+
+    def get_health_distribution(self):
+        return {
+            "low": self.env["account.asset"].search_count([("risk_level", "=", "low")]),
+            "medium": self.env["account.asset"].search_count(
+                [("risk_level", "=", "medium")]
+            ),
+            "high": self.env["account.asset"].search_count(
+                [("risk_level", "=", "high")]
+            ),
+            "critical": self.env["account.asset"].search_count(
+                [("risk_level", "=", "critical")]
+            ),
+        }
+
+    def get_all_metrics(self):
+        return {
+            "assets": self.get_asset_metrics(),
+            "inventory": self.get_inventory_metrics(),
+            "maintenance": self.get_maintenance_metrics(),
+            "health_distribution": self.get_health_distribution(),
+        }
