@@ -27,6 +27,7 @@ This module is designed to be the foundation that the AI & Automation layer
         'mail',
         'hr',
         'product',
+        'board',  # <-- CHANGE 1: Added board engine for dashboard layouts
     ],
     'data': [
         # security
@@ -35,13 +36,16 @@ This module is designed to be the foundation that the AI & Automation layer
         # data
         'data/ir_sequence_data.xml',
         # views
+        'views/dashboard.xml',            # <-- CHANGE 2: Added dashboard views
+        'views/prediction_views.xml',     # <-- CHANGE 2: Added prediction AI views
+        'views/forecast_views.xml',       # <-- CHANGE 2: Added analytical forecasting views
         'views/asset_category_views.xml',
         'views/asset_views.xml',
         'views/allocation_views.xml',
         'views/transfer_views.xml',
         'views/maintenance_views.xml',
         'views/audit_views.xml',
-        'views/menu.xml',
+        'views/menu.xml',                 # menu.xml stays at the bottom of views
         # reports
         'reports/asset_report.xml',
         'reports/maintenance_report.xml',

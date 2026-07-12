@@ -1,3 +1,140 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <data>
+
+        <!-- ============================================================ -->
+        <!-- 1. KPI TILES — Kanban view on singleton dashboard_stats model -->
+        <!-- ============================================================ -->
+        <record id="view_assetflow_dashboard_kpi_kanban" model="ir.ui.view">
+            <field name="name">assetflow.dashboard.stats.kpi.kanban</field>
+            <field name="model">assetflow.dashboard.stats</field>
+            <field name="arch" type="xml">
+                <kanban class="o_assetflow_kpi_kanban" create="false" edit="false">
+                    <field name="total_active_assets"/>
+                    <field name="pending_maintenance_count"/>
+                    <field name="critical_risk_count"/>
+                    <field name="budget_leakage"/>
+                    <templates>
+                        <t t-name="card">
+                            <div class="d-flex flex-row flex-wrap gap-3 p-2">
+
+                                <div class="o_kpi_tile bg-success-subtle border rounded p-3 flex-grow-1">
+                                    <div class="text-muted small">Total Active Assets</div>
+                                    <div class="fs-2 fw-bold">
+                                        <field name="total_active_assets"/>
+                                    </div>
+                                </div>
+
+                                <div class="o_kpi_tile bg-warning-subtle border rounded p-3 flex-grow-1">
+                                    <div class="text-muted small">Pending Maintenances</div>
+                                    <div class="fs-2 fw-bold">
+                                        <field name="pending_maintenance_count"/>
+                                    </div>
+                                </div>
+
+                                <div class="o_kpi_tile bg-danger-subtle border rounded p-3 flex-grow-1">
+                                    <div class="text-muted small">Critical Risk Alerts</div>
+                                    <div class="fs-2 fw-bold text-danger">
+                                        <field name="critical_risk_count"/>
+                                    </div>
+                                </div>
+
+                                <div class="o_kpi_tile bg-info-subtle border rounded p-3 flex-grow-1">
+                                    <div class="text-muted small">Current Budget Leakage</div>
+                                    <div class="fs-2 fw-bold">
+                                        <field name="budget_leakage" widget="monetary"/>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="action_assetflow_dashboard_kpi" model="ir.actions.act_window">
+            <field name="name">KPI Overview</field>
+            <field name="res_model">assetflow.dashboard.stats</field>
+            <field name="view_mode">kanban</field>
+        </record>
+
+        <!-- ============================================================ -->
+        <!-- 2. PIE CHART — Assets by Status                               -->
+        <!-- ============================================================ -->
+        <record id="view_assetflow_dashboard_status_pie" model="ir.ui.view">
+            <field name="name">assetflow.asset.dashboard.pie</field>
+            <field name="model">assetflow.asset</field>
+            <field name="arch" type="xml">
+                <graph string="Assets by Status" type="pie">
+                    <field name="status"/>
+                </graph>
+            </field>
+        </record>
+
+        <record id="action_assetflow_dashboard_status_pie" model="ir.actions.act_window">
+            <field name="name">Assets by Status</field>
+            <field name="res_model">assetflow.asset</field>
+            <field name="view_mode">graph</field>
+            <field name="view_id" ref="view_assetflow_dashboard_status_pie"/>
+        </record>
+
+        <!-- ============================================================ -->
+        <!-- 3. STACKED BAR — Maintenance Costs by Department              -->
+        <!-- ============================================================ -->
+        <record id="view_assetflow_dashboard_cost_bar" model="ir.ui.view">
+            <field name="name">assetflow.maintenance.request.dashboard.bar</field>
+            <field name="model">assetflow.maintenance.request</field>
+            <field name="arch" type="xml">
+                <graph string="Maintenance Costs by Department" type="bar" stacked="True">
+                    <field name="asset_id.department_id" type="row"/>
+                    <field name="status" type="col"/>
+                    <field name="total_cost" type="measure"/>
+                </graph>
+            </field>
+        </record>
+
+        <record id="action_assetflow_dashboard_cost_bar" model="ir.actions.act_window">
+            <field name="name">Maintenance Costs by Department</field>
+            <field name="res_model">assetflow.maintenance.request</field>
+            <field name="view_mode">graph</field>
+            <field name="view_id" ref="view_assetflow_dashboard_cost_bar"/>
+        </record>
+
+        <!-- ============================================================ -->
+        <!-- 4. MASTER DASHBOARD — Board layout combining all three        -->
+        <!-- ============================================================ -->
+        <record id="board_assetflow_dashboard_form" model="ir.ui.view">
+            <field name="name">board.assetflow.dashboard.form</field>
+            <field name="model">board.board</field>
+            <field name="arch" type="xml">
+                <form string="AssetFlow Dashboard">
+                    <board style="1-1">
+                        <column>
+                            <action string="KPI Overview"
+                                    name="%(action_assetflow_dashboard_kpi)d"
+                                    view_mode="kanban"/>
+                            <action string="Assets by Status"
+                                    name="%(action_assetflow_dashboard_status_pie)d"
+                                    view_mode="graph"/>
+                        </column>
+                        <column>
+                            <action string="Maintenance Costs by Department"
+                                    name="%(action_assetflow_dashboard_cost_bar)d"
+                                    view_mode="graph"/>
+                        </column>
+                    </board>
+                </form>
+            </field>
+        </record>
+
+        <!-- Root action referenced by menu.xml -> menu_assetflow_dashboard -->
+        <record id="action_assetflow_dashboard" model="ir.actions.act_window">
+            <field name="name">Dashboard</field>
+            <field name="res_model">board.board</field>
+            <field name="view_mode">form</field>
+            <field name="view_id" ref="board_assetflow_dashboard_form"/>
+        </record>
+
+    </data>
 </odoo>
