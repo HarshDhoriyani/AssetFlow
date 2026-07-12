@@ -1,4 +1,5 @@
 from . import asset
+from . import asset_extension
 from . import asset_category
 from . import allocation
 from . import transfer
