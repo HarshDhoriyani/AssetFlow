@@ -1,3 +1,152 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <data>
+
+        <!-- ROOT APP -->
+        <menuitem id="menu_assetflow_root"
+                  name="AssetFlow"
+                  sequence="10"
+                  web_icon="AssetFlow,static/description/icon.png"/>
+
+        <!-- DASHBOARD -->
+        <menuitem id="menu_assetflow_dashboard"
+                  name="Dashboard"
+                  parent="menu_assetflow_root"
+                  sequence="10"
+                  action="action_assetflow_dashboard"/>
+
+        <!-- ASSETS -->
+        <menuitem id="menu_assetflow_assets_root"
+                  name="Assets"
+                  parent="menu_assetflow_root"
+                  sequence="20"/>
+
+        <menuitem id="menu_assetflow_assets_all"
+                  name="All Assets"
+                  parent="menu_assetflow_assets_root"
+                  sequence="10"
+                  action="action_assetflow_asset"/>
+
+        <menuitem id="menu_assetflow_assets_categories"
+                  name="Categories"
+                  parent="menu_assetflow_assets_root"
+                  sequence="20"
+                  action="action_assetflow_asset_category"/>
+
+        <menuitem id="menu_assetflow_assets_allocation"
+                  name="Allocation"
+                  parent="menu_assetflow_assets_root"
+                  sequence="30"
+                  action="action_assetflow_allocation"/>
+
+        <menuitem id="menu_assetflow_assets_transfers"
+                  name="Transfers"
+                  parent="menu_assetflow_assets_root"
+                  sequence="40"
+                  action="action_assetflow_transfer"/>
+
+        <menuitem id="menu_assetflow_assets_retired"
+                  name="Retired Assets"
+                  parent="menu_assetflow_assets_root"
+                  sequence="50"
+                  action="action_assetflow_asset_retired"/>
+
+        <!-- INVENTORY -->
+        <menuitem id="menu_assetflow_inventory"
+                  name="Inventory"
+                  parent="menu_assetflow_root"
+                  sequence="30"
+                  action="action_assetflow_stock"/>
+
+        <!-- MAINTENANCE -->
+        <menuitem id="menu_assetflow_maintenance_root"
+                  name="Maintenance"
+                  parent="menu_assetflow_root"
+                  sequence="40"/>
+
+        <menuitem id="menu_assetflow_maintenance_requests"
+                  name="Requests"
+                  parent="menu_assetflow_maintenance_root"
+                  sequence="10"
+                  action="action_assetflow_maintenance_request"/>
+
+        <menuitem id="menu_assetflow_maintenance_approvals"
+                  name="Approvals"
+                  parent="menu_assetflow_maintenance_root"
+                  sequence="20"
+                  action="action_assetflow_maintenance_approval"/>
+
+        <menuitem id="menu_assetflow_maintenance_completed"
+                  name="Completed"
+                  parent="menu_assetflow_maintenance_root"
+                  sequence="30"
+                  action="action_assetflow_maintenance_completed"/>
+
+        <menuitem id="menu_assetflow_maintenance_predictions"
+                  name="Predictions"
+                  parent="menu_assetflow_maintenance_root"
+                  sequence="40"
+                  action="action_assetflow_maintenance_prediction"/>
+
+        <!-- BOOKINGS -->
+        <menuitem id="menu_assetflow_bookings"
+                  name="Bookings"
+                  parent="menu_assetflow_root"
+                  sequence="50"
+                  action="action_assetflow_booking"/>
+
+        <!-- AUDITS -->
+        <menuitem id="menu_assetflow_audits"
+                  name="Audits"
+                  parent="menu_assetflow_root"
+                  sequence="60"
+                  action="action_assetflow_audit_cycle"/>
+
+        <!-- PREDICTIONS -->
+        <menuitem id="menu_assetflow_predictions"
+                  name="Predictions"
+                  parent="menu_assetflow_root"
+                  sequence="70"
+                  action="action_assetflow_prediction"/>
+
+        <!-- FORECASTS -->
+        <menuitem id="menu_assetflow_forecasts"
+                  name="Forecasts"
+                  parent="menu_assetflow_root"
+                  sequence="80"
+                  action="action_assetflow_forecast"/>
+
+        <!-- REPORTS -->
+        <menuitem id="menu_assetflow_reports_root"
+                  name="Reports"
+                  parent="menu_assetflow_root"
+                  sequence="90"/>
+
+        <menuitem id="menu_assetflow_reports_asset"
+                  name="Asset Report"
+                  parent="menu_assetflow_reports_root"
+                  sequence="10"
+                  action="action_report_assetflow_asset"/>
+
+        <menuitem id="menu_assetflow_reports_audit"
+                  name="Audit Report"
+                  parent="menu_assetflow_reports_root"
+                  sequence="20"
+                  action="action_report_assetflow_audit"/>
+
+        <menuitem id="menu_assetflow_reports_maintenance"
+                  name="Maintenance Report"
+                  parent="menu_assetflow_reports_root"
+                  sequence="30"
+                  action="action_report_assetflow_maintenance"/>
+
+        <!-- SETTINGS -->
+        <menuitem id="menu_assetflow_settings"
+                  name="Settings"
+                  parent="menu_assetflow_root"
+                  sequence="100"
+                  groups="base.group_system"
+                  action="action_assetflow_settings"/>
+
+    </data>
 </odoo>

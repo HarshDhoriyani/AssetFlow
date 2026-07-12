@@ -1,3 +1,158 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <data>
+
+        <!-- LIST VIEW -->
+        <record id="view_assetflow_maintenance_list" model="ir.ui.view">
+            <field name="name">assetflow.maintenance.request.list</field>
+            <field name="model">assetflow.maintenance.request</field>
+            <field name="arch" type="xml">
+                <list string="Maintenance Requests"
+                      decoration-warning="status == 'pending'"
+                      decoration-info="status == 'approved'"
+                      decoration-muted="status == 'in_progress'"
+                      decoration-success="status == 'completed'"
+                      decoration-danger="status == 'rejected'">
+                    <field name="name"/>
+                    <field name="asset_id"/>
+                    <field name="request_date"/>
+                    <field name="requested_by_id"/>
+                    <field name="priority" widget="priority"/>
+                    <field name="status" widget="badge"
+                           decoration-warning="status == 'pending'"
+                           decoration-info="status == 'approved'"
+                           decoration-warning="status == 'in_progress'"
+                           decoration-success="status == 'completed'"
+                           decoration-danger="status == 'rejected'"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- FORM VIEW -->
+        <record id="view_assetflow_maintenance_form" model="ir.ui.view">
+            <field name="name">assetflow.maintenance.request.form</field>
+            <field name="model">assetflow.maintenance.request</field>
+            <field name="arch" type="xml">
+                <form string="Maintenance Request">
+                    <header>
+                        <button name="action_approve" string="Approve" type="object"
+                                class="btn-primary" invisible="status != 'pending'"/>
+                        <button name="action_reject" string="Reject" type="object"
+                                invisible="status != 'pending'"/>
+                        <button name="action_start" string="Start Progress" type="object"
+                                class="btn-primary" invisible="status != 'approved'"/>
+                        <button name="action_complete" string="Mark Completed" type="object"
+                                class="btn-primary" invisible="status != 'in_progress'"/>
+                        <field name="status" widget="statusbar"
+                               statusbar_visible="pending,approved,in_progress,completed"/>
+                    </header>
+                    <sheet>
+                        <div class="oe_title">
+                            <h1><field name="name" placeholder="Request Reference"/></h1>
+                        </div>
+                        <group>
+                            <group string="Request Details">
+                                <field name="asset_id"/>
+                                <field name="requested_by_id"/>
+                                <field name="request_date"/>
+                                <field name="priority" widget="priority"/>
+                            </group>
+                            <group string="Assignment">
+                                <field name="assigned_technician_id"/>
+                                <field name="scheduled_date"/>
+                                <field name="completion_date"
+                                       invisible="status != 'completed'"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Parts Used">
+                                <field name="part_ids">
+                                    <list editable="bottom">
+                                        <field name="product_id"/>
+                                        <field name="quantity"/>
+                                        <field name="cost"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Description &amp; Notes">
+                                <field name="description" placeholder="Describe the issue..."/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- KANBAN VIEW (grouped by status - typical maintenance board) -->
+        <record id="view_assetflow_maintenance_kanban" model="ir.ui.view">
+            <field name="name">assetflow.maintenance.request.kanban</field>
+            <field name="model">assetflow.maintenance.request</field>
+            <field name="arch" type="xml">
+                <kanban class="o_kanban_small_column" default_group_by="status">
+                    <field name="status"/>
+                    <field name="priority"/>
+                    <templates>
+                        <t t-name="card">
+                            <div class="oe_kanban_card oe_kanban_global_click">
+                                <strong><field name="name"/></strong>
+                                <div><field name="asset_id"/></div>
+                                <div><field name="priority" widget="priority"/></div>
+                                <div><field name="assigned_technician_id" widget="many2one_avatar_user"/></div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- SEARCH VIEW -->
+        <record id="view_assetflow_maintenance_search" model="ir.ui.view">
+            <field name="name">assetflow.maintenance.request.search</field>
+            <field name="model">assetflow.maintenance.request</field>
+            <field name="arch" type="xml">
+                <search string="Search Maintenance Requests">
+                    <field name="name"/>
+                    <field name="asset_id"/>
+                    <field name="assigned_technician_id"/>
+                    <filter string="Pending" name="filter_pending" domain="[('status','=','pending')]"/>
+                    <filter string="Approved" name="filter_approved" domain="[('status','=','approved')]"/>
+                    <filter string="In Progress" name="filter_in_progress" domain="[('status','=','in_progress')]"/>
+                    <filter string="Completed" name="filter_completed" domain="[('status','=','completed')]"/>
+                    <filter string="Rejected" name="filter_rejected" domain="[('status','=','rejected')]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                        <filter string="Priority" name="group_priority" context="{'group_by': 'priority'}"/>
+                        <filter string="Technician" name="group_tech" context="{'group_by': 'assigned_technician_id'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- ACTIONS (matches menu.xml: Requests / Approvals / Completed / Predictions) -->
+        <record id="action_assetflow_maintenance_request" model="ir.actions.act_window">
+            <field name="name">Maintenance Requests</field>
+            <field name="res_model">assetflow.maintenance.request</field>
+            <field name="view_mode">list,kanban,form</field>
+        </record>
+
+        <record id="action_assetflow_maintenance_approval" model="ir.actions.act_window">
+            <field name="name">Approvals</field>
+            <field name="res_model">assetflow.maintenance.request</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('status','=','pending')]</field>
+        </record>
+
+        <record id="action_assetflow_maintenance_completed" model="ir.actions.act_window">
+            <field name="name">Completed</field>
+            <field name="res_model">assetflow.maintenance.request</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('status','=','completed')]</field>
+        </record>
+
+    </data>
 </odoo>

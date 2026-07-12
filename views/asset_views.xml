@@ -1,3 +1,210 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <data>
+
+        <!-- LIST VIEW -->
+        <record id="view_assetflow_asset_list" model="ir.ui.view">
+            <field name="name">assetflow.asset.list</field>
+            <field name="model">assetflow.asset</field>
+            <field name="arch" type="xml">
+                <list string="Assets"
+                      decoration-danger="risk_level == 'critical'"
+                      decoration-warning="risk_level == 'warning'"
+                      decoration-muted="status == 'retired'">
+                    <field name="asset_code"/>
+                    <field name="name"/>
+                    <field name="category_id"/>
+                    <field name="department_id"/>
+                    <field name="assigned_to_id"/>
+                    <field name="status" widget="badge"
+                           decoration-success="status == 'available'"
+                           decoration-info="status == 'allocated'"
+                           decoration-warning="status == 'maintenance'"
+                           decoration-muted="status == 'retired'"/>
+                    <field name="health_score" widget="progressbar"/>
+                    <field name="risk_level" widget="badge"
+                           decoration-success="risk_level == 'healthy'"
+                           decoration-warning="risk_level == 'monitor'"
+                           decoration-danger="risk_level in ('warning','critical')"/>
+                </list>
+            </field>
+        </record>
+
+        <!-- FORM VIEW -->
+        <record id="view_assetflow_asset_form" model="ir.ui.view">
+            <field name="name">assetflow.asset.form</field>
+            <field name="model">assetflow.asset</field>
+            <field name="arch" type="xml">
+                <form string="Asset">
+                    <header>
+                        <field name="status" widget="statusbar"
+                               statusbar_visible="available,allocated,maintenance,retired"/>
+                    </header>
+                    <sheet>
+                        <field name="image_1920" widget="image" class="oe_avatar"/>
+                        <div class="oe_title">
+                            <h1><field name="name" placeholder="Asset Name"/></h1>
+                            <field name="asset_code" placeholder="Asset ID / Code"/>
+                        </div>
+                        <group>
+                            <group string="Basic Details">
+                                <field name="category_id"/>
+                                <field name="department_id"/>
+                                <field name="assigned_to_id"/>
+                                <field name="location_id"/>
+                            </group>
+                            <group string="Purchase Info">
+                                <field name="purchase_date"/>
+                                <field name="purchase_value"/>
+                                <field name="vendor_id"/>
+                                <field name="warranty_expiry"/>
+                            </group>
+                        </group>
+                        <group>
+                            <group string="Health &amp; Risk">
+                                <field name="health_score" widget="progressbar"/>
+                                <field name="risk_level" widget="badge"
+                                       decoration-success="risk_level == 'healthy'"
+                                       decoration-warning="risk_level in ('monitor','warning')"
+                                       decoration-danger="risk_level == 'critical'"/>
+                            </group>
+                        </group>
+                        <notebook>
+                            <page string="Maintenance History">
+                                <field name="maintenance_ids">
+                                    <list>
+                                        <field name="name"/>
+                                        <field name="request_date"/>
+                                        <field name="status" widget="badge"
+                                               decoration-warning="status == 'pending'"
+                                               decoration-info="status == 'approved'"
+                                               decoration-warning="status == 'in_progress'"
+                                               decoration-success="status == 'completed'"
+                                               decoration-danger="status == 'rejected'"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Audit History">
+                                <field name="audit_line_ids">
+                                    <list>
+                                        <field name="audit_cycle_id"/>
+                                        <field name="audit_date"/>
+                                        <field name="result"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Prediction History">
+                                <field name="prediction_ids">
+                                    <list>
+                                        <field name="prediction_date"/>
+                                        <field name="health_score" widget="progressbar"/>
+                                        <field name="risk_level" widget="badge"/>
+                                    </list>
+                                </field>
+                            </page>
+                            <page string="Attachments">
+                                <field name="attachment_ids" widget="many2many_binary"/>
+                            </page>
+                        </notebook>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="activity_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <!-- KANBAN VIEW -->
+        <record id="view_assetflow_asset_kanban" model="ir.ui.view">
+            <field name="name">assetflow.asset.kanban</field>
+            <field name="model">assetflow.asset</field>
+            <field name="arch" type="xml">
+                <kanban class="o_kanban_small_column">
+                    <field name="status"/>
+                    <field name="risk_level"/>
+                    <field name="health_score"/>
+                    <templates>
+                        <t t-name="card">
+                            <div class="oe_kanban_card oe_kanban_global_click">
+                                <div class="o_kanban_image">
+                                    <field name="image_128" widget="image" class="o_kanban_image_fill_left"/>
+                                </div>
+                                <div class="oe_kanban_details">
+                                    <strong><field name="name"/></strong>
+                                    <div>
+                                        <field name="status" widget="badge"
+                                               decoration-success="status == 'available'"
+                                               decoration-info="status == 'allocated'"
+                                               decoration-warning="status == 'maintenance'"
+                                               decoration-muted="status == 'retired'"/>
+                                    </div>
+                                    <div>
+                                        <field name="health_score" widget="progressbar"/>
+                                    </div>
+                                    <div>
+                                        <field name="risk_level" widget="badge"
+                                               decoration-success="risk_level == 'healthy'"
+                                               decoration-warning="risk_level in ('monitor','warning')"
+                                               decoration-danger="risk_level == 'critical'"/>
+                                    </div>
+                                    <div>
+                                        <field name="assigned_to_id" widget="many2one_avatar_user"/>
+                                    </div>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <!-- SEARCH VIEW -->
+        <record id="view_assetflow_asset_search" model="ir.ui.view">
+            <field name="name">assetflow.asset.search</field>
+            <field name="model">assetflow.asset</field>
+            <field name="arch" type="xml">
+                <search string="Search Assets">
+                    <field name="name"/>
+                    <field name="asset_code"/>
+                    <field name="category_id"/>
+                    <field name="department_id"/>
+                    <field name="assigned_to_id"/>
+                    <filter string="Available" name="filter_available" domain="[('status','=','available')]"/>
+                    <filter string="Allocated" name="filter_allocated" domain="[('status','=','allocated')]"/>
+                    <filter string="Under Maintenance" name="filter_maintenance" domain="[('status','=','maintenance')]"/>
+                    <filter string="Retired" name="filter_retired" domain="[('status','=','retired')]"/>
+                    <separator/>
+                    <filter string="Critical Risk" name="filter_critical" domain="[('risk_level','=','critical')]"/>
+                    <group expand="0" string="Group By">
+                        <filter string="Category" name="group_category" context="{'group_by': 'category_id'}"/>
+                        <filter string="Department" name="group_department" context="{'group_by': 'department_id'}"/>
+                        <filter string="Status" name="group_status" context="{'group_by': 'status'}"/>
+                        <filter string="Risk Level" name="group_risk" context="{'group_by': 'risk_level'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+        <!-- ACTION -->
+        <record id="action_assetflow_asset" model="ir.actions.act_window">
+            <field name="name">Assets</field>
+            <field name="res_model">assetflow.asset</field>
+            <field name="view_mode">kanban,list,form</field>
+            <field name="context">{'search_default_filter_available': 0}</field>
+            <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">Create your first asset</p>
+            </field>
+        </record>
+
+        <!-- RETIRED ASSETS ACTION (filtered view for menu) -->
+        <record id="action_assetflow_asset_retired" model="ir.actions.act_window">
+            <field name="name">Retired Assets</field>
+            <field name="res_model">assetflow.asset</field>
+            <field name="view_mode">list,form</field>
+            <field name="domain">[('status','=','retired')]</field>
+        </record>
+
+    </data>
 </odoo>
