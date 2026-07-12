@@ -4,8 +4,9 @@ from datetime import date, timedelta
 
 
 class AssetExtension(models.Model):
-    _inherit = "account.asset"
+    _inherit = "assetflow.asset"
 
+    usage_hours = fields.Float(string="Usage Hours", default=0)
     health_score = fields.Float(
         string="Health Score", compute="_compute_health_score", store=True
     )
@@ -23,24 +24,6 @@ class AssetExtension(models.Model):
     predicted_failure_date = fields.Date(
         string="Predicted Failure Date", compute="_compute_health_score", store=True
     )
-    usage_hours = fields.Float(string="Usage Hours", default=0)
-    asset_code = fields.Char(
-        string="Asset Code", required=True, copy=False, default="AST-0001"
-    )
-    asset_state = fields.Selection(
-        [
-            ("draft", "Draft"),
-            ("active", "Active"),
-            ("under_maintenance", "Under Maintenance"),
-            ("retired", "Retired"),
-        ],
-        string="Asset Status",
-        default="draft",
-    )
-    current_location = fields.Char(string="Current Location")
-    assigned_employee = fields.Many2one("hr.employee", string="Assigned To")
-    warranty_expiry = fields.Date(string="Warranty Expiry")
-    expected_life_years = fields.Integer(string="Expected Life (Years)", default=5)
     prediction_ids = fields.One2many(
         "maintenance.prediction", "asset_id", string="Predictions"
     )
@@ -63,20 +46,20 @@ class AssetExtension(models.Model):
             if asset.expected_life_years < 0:
                 raise ValidationError("Expected life years cannot be negative.")
 
-    @api.constrains("date")
+    @api.constrains("purchase_date")
     def _check_purchase_date(self):
         for asset in self:
-            if asset.date and asset.date > date.today():
+            if asset.purchase_date and asset.purchase_date > date.today():
                 raise ValidationError("Purchase date cannot be in the future.")
 
-    @api.depends("date", "value", "salvage_value", "usage_hours")
+    @api.depends("purchase_date", "usage_hours", "state")
     def _compute_health_score(self):
         for asset in self:
             score = 100
             today = date.today()
 
-            if asset.date:
-                age_years = (today - asset.date).days / 365
+            if asset.purchase_date:
+                age_years = (today - asset.purchase_date).days / 365
                 if age_years > 2:
                     score -= 15
                 if age_years > 5:
@@ -87,22 +70,23 @@ class AssetExtension(models.Model):
             if asset.usage_hours > 25000:
                 score -= 35
 
-            maintenance_requests = self.env["maintenance.request"].search(
+            maint_requests = self.env["assetflow.maintenance.request"].search(
                 [
                     ("asset_id", "=", asset.id),
-                    ("state", "=", "done"),
+                    ("status", "=", "done"),
                 ]
             )
-            if maintenance_requests:
-                last_maint_date = max(m.date for m in maintenance_requests if m.date)
-                if last_maint_date:
+            if maint_requests:
+                completed = maint_requests.filtered(lambda r: r.completion_date)
+                if completed:
+                    last_maint_date = max(completed.mapped("completion_date"))
                     days_since = (today - last_maint_date).days
                     if days_since > 180:
                         score -= 25
                     if days_since > 365:
                         score -= 40
 
-            maint_count = len(maintenance_requests)
+            maint_count = len(maint_requests)
             if maint_count > 5:
                 score -= 10
             if maint_count > 10:
@@ -132,6 +116,6 @@ class AssetExtension(models.Model):
 
     @api.model
     def _cron_recalculate_health_scores(self):
-        assets = self.search([("state", "=", "posted"), ("value", ">", 0)])
+        assets = self.search([("state", "in", ["active", "allocated", "maintenance"])])
         for asset in assets:
             asset._compute_health_score()

@@ -23,7 +23,6 @@ AssetFlow - Intelligent Inventory & Asset Management
         "hr",
         "product",
         "stock",
-        "account_asset",
         "maintenance",
         "board",
     ],

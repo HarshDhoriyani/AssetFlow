@@ -9,7 +9,7 @@ class MaintenancePrediction(models.Model):
     _order = "prediction_date desc"
 
     asset_id = fields.Many2one(
-        "account.asset", string="Asset", required=True, ondelete="cascade"
+        "assetflow.asset", string="Asset", required=True, ondelete="cascade"
     )
     health_score = fields.Float(
         string="Health Score", related="asset_id.health_score", store=True
@@ -46,7 +46,9 @@ class MaintenancePrediction(models.Model):
         string="Status",
         default="active",
     )
-    linked_request_id = fields.Many2one("maintenance.request", string="Linked Request")
+    linked_request_id = fields.Many2one(
+        "assetflow.maintenance.request", string="Linked Request"
+    )
     prediction_date = fields.Datetime(
         string="Prediction Date", default=fields.Datetime.now
     )
@@ -91,14 +93,14 @@ class MaintenancePrediction(models.Model):
             confidence = 50
             if asset.usage_hours > 0:
                 confidence += 10
-            maintenance_count = self.env["maintenance.request"].search_count(
+            maintenance_count = self.env["assetflow.maintenance.request"].search_count(
                 [
                     ("asset_id", "=", asset.id),
                 ]
             )
             if maintenance_count > 3:
                 confidence += 15
-            if asset.date and (date.today() - asset.date).days > 365:
+            if asset.purchase_date and (date.today() - asset.purchase_date).days > 365:
                 confidence += 15
             pred.confidence = min(confidence, 95)
 
@@ -107,21 +109,22 @@ class MaintenancePrediction(models.Model):
         for pred in self:
             asset = pred.asset_id
             factors = []
-            if asset.date:
-                age_years = (date.today() - asset.date).days / 365
+            if asset.purchase_date:
+                age_years = (date.today() - asset.purchase_date).days / 365
                 if age_years > 2:
                     factors.append(f"Asset age: {age_years:.1f} years")
             if asset.usage_hours > 10000:
                 factors.append(f"High usage: {asset.usage_hours:.0f} hours")
-            maintenance_requests = self.env["maintenance.request"].search(
+            maintenance_requests = self.env["assetflow.maintenance.request"].search(
                 [
                     ("asset_id", "=", asset.id),
                 ]
             )
             if maintenance_requests:
-                last_maint = maintenance_requests[-1]
-                if last_maint.date:
-                    days_since = (date.today() - last_maint.date).days
+                completed = maintenance_requests.filtered(lambda r: r.completion_date)
+                if completed:
+                    last_maint = max(completed, key=lambda r: r.completion_date)
+                    days_since = (date.today() - last_maint.completion_date).days
                     if days_since > 180:
                         factors.append(f"No maintenance for {days_since} days")
             maint_count = len(maintenance_requests)
@@ -146,8 +149,10 @@ class MaintenancePrediction(models.Model):
         return self.create(vals)
 
     def _generate_all_predictions(self):
-        assets = self.env["account.asset"].search(
-            [("state", "=", "posted"), ("value", ">", 0)]
+        assets = self.env["assetflow.asset"].search(
+            [
+                ("state", "in", ["active", "allocated", "maintenance"]),
+            ]
         )
         for asset in assets:
             self._generate_prediction_for_asset(asset)
@@ -167,21 +172,21 @@ class MaintenancePrediction(models.Model):
 
     def action_create_maintenance_request(self):
         self.ensure_one()
-        request = self.env["maintenance.request"].create(
+        request = self.env["assetflow.maintenance.request"].create(
             {
                 "name": f"Predictive: {self.asset_id.name}",
                 "asset_id": self.asset_id.id,
-                "maintenance_type": "corrective",
+                "request_type": "corrective",
                 "priority": "3" if self.risk_level in ["high", "critical"] else "2",
-                "state": "new",
+                "status": "draft",
                 "description": f"AI Prediction: Health {self.health_score}/100. Risk: {self.risk_level}\n\n{self.factors}",
-                "date": self.predicted_failure_date,
+                "scheduled_date": self.predicted_failure_date,
             }
         )
         self.write({"status": "maintenance_created", "linked_request_id": request.id})
         return {
             "type": "ir.actions.act_window",
-            "res_model": "maintenance.request",
+            "res_model": "assetflow.maintenance.request",
             "res_id": request.id,
             "view_mode": "form",
             "target": "current",

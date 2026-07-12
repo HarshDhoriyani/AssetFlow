@@ -9,28 +9,32 @@ class DashboardStats(models.Model):
     name = fields.Char(string="Name", default="Dashboard Stats")
 
     def get_asset_metrics(self):
-        assets = self.env["account.asset"].search([])
-        active = self.env["account.asset"].search_count([("state", "=", "active")])
-        under_maintenance = self.env["account.asset"].search_count(
-            [("state", "=", "under_maintenance")]
+        assets = self.env["assetflow.asset"].search([])
+        active = self.env["assetflow.asset"].search_count([("state", "=", "active")])
+        allocated = self.env["assetflow.asset"].search_count(
+            [("state", "=", "allocated")]
         )
-        retired = self.env["account.asset"].search_count([("state", "=", "retired")])
+        under_maintenance = self.env["assetflow.asset"].search_count(
+            [("state", "=", "maintenance")]
+        )
+        retired = self.env["assetflow.asset"].search_count([("state", "=", "retired")])
         avg_health = sum(a.health_score for a in assets if a.health_score) / max(
             len(assets), 1
         )
-        critical_count = self.env["account.asset"].search_count(
+        critical_count = self.env["assetflow.asset"].search_count(
             [("risk_level", "=", "critical")]
         )
-        upcoming_failures = self.env["account.asset"].search_count(
+        upcoming_failures = self.env["assetflow.asset"].search_count(
             [
                 ("predicted_failure_date", ">=", date.today()),
                 ("predicted_failure_date", "<=", date.today() + timedelta(days=30)),
-                ("state", "=", "active"),
+                ("state", "in", ["active", "allocated"]),
             ]
         )
         return {
             "total_assets": len(assets),
             "active": active,
+            "allocated": allocated,
             "under_maintenance": under_maintenance,
             "retired": retired,
             "avg_health_score": round(avg_health, 1),
@@ -64,21 +68,23 @@ class DashboardStats(models.Model):
         }
 
     def get_maintenance_metrics(self):
-        open_requests = self.env["maintenance.request"].search_count(
+        open_requests = self.env["assetflow.maintenance.request"].search_count(
             [
-                ("state", "not in", ["done", "cancelled"]),
+                ("status", "not in", ["completed", "verified"]),
             ]
         )
-        overdue = self.env["maintenance.request"].search_count(
+        overdue = self.env["assetflow.maintenance.request"].search_count(
             [
-                ("state", "not in", ["done", "cancelled"]),
+                ("status", "not in", ["completed", "verified"]),
                 ("scheduled_date", "<", date.today()),
             ]
         )
-        completed = self.env["maintenance.request"].search_count(
-            [("state", "=", "done")]
+        completed = self.env["assetflow.maintenance.request"].search_count(
+            [
+                ("status", "in", ["completed", "verified"]),
+            ]
         )
-        total = self.env["maintenance.request"].search_count([])
+        total = self.env["assetflow.maintenance.request"].search_count([])
         completion_rate = (completed / max(total, 1)) * 100
         return {
             "open_maintenance": open_requests,
@@ -88,14 +94,16 @@ class DashboardStats(models.Model):
 
     def get_health_distribution(self):
         return {
-            "low": self.env["account.asset"].search_count([("risk_level", "=", "low")]),
-            "medium": self.env["account.asset"].search_count(
+            "low": self.env["assetflow.asset"].search_count(
+                [("risk_level", "=", "low")]
+            ),
+            "medium": self.env["assetflow.asset"].search_count(
                 [("risk_level", "=", "medium")]
             ),
-            "high": self.env["account.asset"].search_count(
+            "high": self.env["assetflow.asset"].search_count(
                 [("risk_level", "=", "high")]
             ),
-            "critical": self.env["account.asset"].search_count(
+            "critical": self.env["assetflow.asset"].search_count(
                 [("risk_level", "=", "critical")]
             ),
         }
