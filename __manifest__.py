@@ -1,56 +1,53 @@
 # -*- coding: utf-8 -*-
 {
-    'name': 'AssetFlow - Enterprise Asset & Resource Management',
-    'version': '17.0.1.0.0',
-    'summary': 'AI-powered Enterprise Asset & Resource Management System',
-    'description': """
-AssetFlow - Core ERP Backend (Member 1 scope)
-==============================================
-Provides the operational backbone for the AssetFlow system:
+    "name": "AssetFlow - Enterprise Asset & Resource Management",
+    "version": "17.0.1.0.0",
+    "summary": "AI-powered Enterprise Asset & Resource Management System",
+    "description": """
+AssetFlow - Intelligent Inventory & Asset Management
+=====================================================
 - Asset Registration & Lifecycle Management
-- Asset Categories & Tags
-- Asset Allocation Workflow
-- Asset Transfer Workflow
+- Asset Allocation & Transfer Workflows
 - Maintenance Request Workflow
 - Audit Cycle Workflow
-- Role-based Security & Record Rules
-This module is designed to be the foundation that the AI & Automation layer
-(Member 2) and the Frontend/Dashboard layer (Member 3) build on top of.
+- AI-Powered Predictive Maintenance
+- Demand Forecasting (SMA & EWMA)
+- Real-time Dashboards & Analytics
     """,
-    'category': 'Operations/Assets',
-    'author': 'AssetFlow Team - Member 1 (Core ERP Backend)',
-    'license': 'LGPL-3',
-    'depends': [
-        'base',
-        'mail',
-        'hr',
-        'product',
-        'board',  # <-- Added board engine for dashboard layouts
+    "category": "Operations/Assets",
+    "author": "AssetFlow Team",
+    "license": "LGPL-3",
+    "depends": [
+        "base",
+        "mail",
+        "hr",
+        "product",
+        "stock",
+        "account_asset",
+        "maintenance",
+        "board",
     ],
-    'data': [
-        # security
-        'security/assetflow_security.xml',
-        'security/ir.model.access.csv',
-        # data
-        'data/ir_sequence_data.xml',
-        # views
-        'views/dashboard.xml',            # dashboard views
-        'views/prediction_views.xml',     # prediction AI views
-        'views/forecast_views.xml',       # analytical forecasting views
-        'views/stock_views.xml',          # <-- ADDED: stock/inventory health views
-        'views/asset_category_views.xml',
-        'views/asset_views.xml',
-        'views/allocation_views.xml',
-        'views/transfer_views.xml',
-        'views/maintenance_views.xml',
-        'views/audit_views.xml',
-        'views/menu.xml',                 # menu.xml stays at the bottom of views
-        # reports
-        'reports/asset_report.xml',
-        'reports/maintenance_report.xml',
-        'reports/audit_report.xml',
+    "data": [
+        "security/assetflow_security.xml",
+        "security/ir.model.access.csv",
+        "data/ir_sequence_data.xml",
+        "data/demo_data.xml",
+        "data/cron_jobs.xml",
+        "data/automation_actions.xml",
+        "views/dashboard.xml",
+        "views/prediction_views.xml",
+        "views/forecast_views.xml",
+        "views/stock_views.xml",
+        "views/asset_views.xml",
+        "views/maintenance_views.xml",
+        "views/audit_views.xml",
+        "views/transfer_views.xml",
+        "views/menu.xml",
+        "reports/asset_report.xml",
+        "reports/maintenance_report.xml",
+        "reports/audit_report.xml",
     ],
-    'installable': True,
-    'application': True,
-    'auto_install': False,
+    "installable": True,
+    "application": True,
+    "auto_install": False,
 }
